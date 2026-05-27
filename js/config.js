@@ -13,7 +13,7 @@
 window.PRODE_CONFIG = {
   // 1) Supabase ---------------------------------------------------------------
   SUPABASE_URL: 'https://wqxxwpzuizltvzsalxoa.supabase.co',
-  SUPABASE_ANON_KEY: '',   // pegá acá la clave "anon public" (Settings -> API)
+  SUPABASE_ANON_KEY: 'sb_publishable_IH70uWZpw8BHw_mse_QTZA_Ie6VjZ6t',   // clave publicable (segura para el navegador)
 
   // 2) Inscripción / premio ---------------------------------------------------
   ENTRY_ENABLED: true,
