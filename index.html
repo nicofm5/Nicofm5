@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRODE Mundial 2026</title>
+  <meta name="description" content="Prode de la fase de grupos del Mundial FIFA 2026" />
+  <link rel="preconnect" href="https://flagcdn.com" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===================== Barra superior ===================== -->
+  <header class="topbar" id="topbar">
+    <div class="brand">
+      <!-- PLACEHOLDER LOGO: reemplazá por el logo oficial (ej. assets/logo.png) -->
+      <div class="logo-ph" title="Logo del torneo (placeholder)">26</div>
+      <div class="brand-text">
+        <strong id="appTitle">PRODE Mundial 2026</strong>
+        <span id="appSubtitle">Fase de grupos</span>
+      </div>
+    </div>
+    <nav class="nav" id="nav" hidden>
+      <button class="nav-btn" data-view="fixture" id="navFixture">Mi prode</button>
+      <button class="nav-btn" data-view="ranking" id="navRanking">Ranking</button>
+      <button class="nav-btn" data-view="admin" id="navAdmin">Admin</button>
+      <span class="user-chip" id="userChip" hidden></span>
+      <button class="nav-btn ghost" id="logoutBtn" hidden>Salir</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- ===================== Bienvenida / Login ===================== -->
+    <section id="view-welcome" class="view">
+      <div class="hero">
+        <div class="mascots">
+          <!-- PLACEHOLDER MASCOTAS: reemplazá por las mascotas oficiales -->
+          <div class="mascot-ph">🦅</div>
+          <div class="mascot-ph">🫎</div>
+          <div class="mascot-ph">🐆</div>
+        </div>
+        <h1 class="hero-title">Sumate al <span>PRODE 2026</span></h1>
+        <p class="hero-sub">Pronosticá los 72 partidos de la fase de grupos y competí por el primer puesto.</p>
+      </div>
+
+      <div class="card login-card">
+        <h2>Ingresá para jugar</h2>
+        <p class="muted">Identificate con tu nombre y apellido. Si ya jugaste, recuperás tus jugadas.</p>
+        <form id="loginForm" class="form">
+          <div class="row">
+            <label>Nombre
+              <input type="text" id="firstName" autocomplete="given-name" required placeholder="Lionel" />
+            </label>
+            <label>Apellido
+              <input type="text" id="lastName" autocomplete="family-name" required placeholder="Messi" />
+            </label>
+          </div>
+
+          <div id="entryBox" class="entry-box" hidden>
+            <h3>Inscripción</h3>
+            <p class="entry-cost">Costo: <strong id="entryCost"></strong></p>
+            <p class="muted" id="entryNote"></p>
+            <p class="alias">Alias / CBU: <strong id="entryAlias"></strong></p>
+            <label>Nº de comprobante / Alias de transferencia
+              <input type="text" id="paymentReference" placeholder="Ej: 0001234567 o tu.alias" />
+            </label>
+          </div>
+
+          <button type="submit" class="btn primary" id="loginBtn">Ingresar</button>
+          <p class="error" id="loginError" hidden></p>
+        </form>
+      </div>
+      <p class="backend-note" id="backendNote"></p>
+    </section>
+
+    <!-- ===================== Editor de fixture ===================== -->
+    <section id="view-fixture" class="view" hidden>
+      <div class="view-head">
+        <h2>Cargá tus pronósticos</h2>
+        <p class="muted">Las predicciones de cada partido se cierran <strong id="lockMins">60</strong> min antes del inicio (hora de Argentina).</p>
+      </div>
+      <div id="groupsContainer"></div>
+
+      <div class="action-bar" id="actionBar">
+        <button class="btn" id="saveDraftBtn">Guardar borrador</button>
+        <button class="btn primary" id="confirmBtn">Confirmar jugadas</button>
+        <span class="save-status" id="saveStatus"></span>
+      </div>
+    </section>
+
+    <!-- ===================== Ticket ===================== -->
+    <section id="view-ticket" class="view" hidden>
+      <div class="ticket-actions no-print">
+        <button class="btn primary" id="printBtn">🖨️ Imprimir ticket</button>
+        <button class="btn ghost" id="backFromTicket">Volver</button>
+      </div>
+      <div id="ticket" class="ticket"></div>
+    </section>
+
+    <!-- ===================== Ranking ===================== -->
+    <section id="view-ranking" class="view" hidden>
+      <div class="view-head">
+        <h2>Tabla de posiciones</h2>
+        <p class="muted">+1 punto por acertar el resultado · +1 punto extra si coincide el marcador exacto.</p>
+      </div>
+      <div id="rankingContainer"></div>
+    </section>
+
+    <!-- ===================== Admin ===================== -->
+    <section id="view-admin" class="view" hidden>
+      <div id="adminLogin" class="card login-card">
+        <h2>Panel de administrador</h2>
+        <p class="muted">Ingresá la contraseña para cargar resultados y validar pagos.</p>
+        <form id="adminForm" class="form">
+          <label>Contraseña
+            <input type="password" id="adminPass" />
+          </label>
+          <button class="btn primary" type="submit">Entrar</button>
+          <p class="error" id="adminError" hidden></p>
+        </form>
+      </div>
+
+      <div id="adminPanel" hidden>
+        <div class="tabs">
+          <button class="tab active" data-tab="results">Cargar resultados</button>
+          <button class="tab" data-tab="players">Jugadores y pagos</button>
+        </div>
+        <div id="adminResults" class="tab-panel"></div>
+        <div id="adminPlayers" class="tab-panel" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================== Scripts ===================== -->
+  <!-- Cliente Supabase (CDN UMD). Si no configurás Supabase, la app usa localStorage. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/fixture.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
