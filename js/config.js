@@ -18,14 +18,14 @@ window.PRODE_CONFIG = {
   // 2) Inscripción / premio ---------------------------------------------------
   ENTRY_ENABLED: true,
   ENTRY_COST: '$1000 ARS',
-  ENTRY_ALIAS: 'tu.alias.mp',           // alias / CBU / CVU donde reciben el pago
+  ENTRY_ALIAS: 'nicofm5',               // alias / CBU / CVU donde reciben el pago
   ENTRY_NOTE: 'Transferí el valor de la inscripción y pegá el número de comprobante o tu alias para que el administrador valide tu participación.',
 
   // 3) Bloqueo horario --------------------------------------------------------
   LOCK_MINUTES: 60,        // se cierra la edición 60 min antes del inicio
 
   // 4) Panel de administración ------------------------------------------------
-  ADMIN_PASSWORD: 'cambiame-admin-2026',
+  ADMIN_PASSWORD: 'Laacademia555',
 
   // Branding (texto) ----------------------------------------------------------
   APP_TITLE: 'PRODE Mundial 2026',
