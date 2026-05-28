@@ -247,6 +247,8 @@ h1, h2, h3, .display { font-family: 'Anton', 'Inter', sans-serif; font-weight: 4
 
 /* ---------- Ticket ---------- */
 .ticket-actions { display: flex; gap: 10px; margin-bottom: 14px; }
+.ticket-actions .btn.ghost { color: #fff; border-color: rgba(255, 255, 255, .45); }
+.ticket-actions .btn.ghost:hover { background: rgba(255, 255, 255, .12); }
 .ticket {
   max-width: 560px; margin: 0 auto; background: #fff; border-radius: 16px;
   box-shadow: var(--shadow); padding: 24px; position: relative; overflow: hidden;
