@@ -15,14 +15,20 @@
   <meta name="twitter:title" content="Mundial 2026 Prode · Vamos Argentina" />
   <meta name="twitter:description" content="Sumate al prode de la fase de grupos del Mundial FIFA 2026. ¡Vamos Argentina!" />
   <link rel="preconnect" href="https://flagcdn.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <!-- ===================== Barra superior ===================== -->
   <header class="topbar" id="topbar">
     <div class="brand">
-      <!-- PLACEHOLDER LOGO: reemplazá por el logo oficial (ej. assets/logo.png) -->
-      <div class="logo-ph" title="Logo del torneo (placeholder)">26</div>
+      <span class="brand-mark">
+        <img class="brand-logo" src="assets/logo26.png" alt="Mundial 2026"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';" />
+        <span class="logo-ph" style="display:none">26</span>
+      </span>
       <div class="brand-text">
         <strong id="appTitle">PRODE Mundial 2026</strong>
         <span id="appSubtitle">Fase de grupos</span>
@@ -41,14 +47,21 @@
     <!-- ===================== Bienvenida / Login ===================== -->
     <section id="view-welcome" class="view">
       <div class="hero">
-        <div class="mascots">
-          <!-- PLACEHOLDER MASCOTAS: reemplazá por las mascotas oficiales -->
-          <div class="mascot-ph">🦅</div>
-          <div class="mascot-ph">🫎</div>
-          <div class="mascot-ph">🐆</div>
-        </div>
+        <img class="hero-logo" src="assets/logo26.png" alt="FIFA World Cup 26" onerror="this.style.display='none'" />
         <h1 class="hero-title">Sumate al <span>PRODE 2026</span></h1>
         <p class="hero-sub">Pronosticá los 72 partidos de la fase de grupos y competí por el primer puesto.</p>
+
+        <figure class="champ">
+          <img class="champ-img" src="assets/messi.png" alt="Argentina campeón del mundo 2022"
+               onerror="this.closest('.champ').classList.add('no-img')" />
+          <figcaption class="champ-cap">Campeones del mundo 2022 · ¡Vamos por la próxima! 🏆</figcaption>
+        </figure>
+
+        <div class="mascots">
+          <figure class="mascot-ph"><img src="assets/aguila.png" alt="Águila" onerror="this.replaceWith(document.createTextNode('🦅'))" /></figure>
+          <figure class="mascot-ph"><img src="assets/jaguar.png" alt="Jaguar" onerror="this.replaceWith(document.createTextNode('🐆'))" /></figure>
+          <figure class="mascot-ph"><img src="assets/alce.png" alt="Alce" onerror="this.replaceWith(document.createTextNode('🫎'))" /></figure>
+        </div>
       </div>
 
       <div class="card login-card">
@@ -84,7 +97,7 @@
     <!-- ===================== Editor de fixture ===================== -->
     <section id="view-fixture" class="view" hidden>
       <div class="view-head">
-        <h2>Cargá tus pronósticos</h2>
+        <h2><img class="head-mascot" src="assets/jaguar.png" alt="" onerror="this.replaceWith(document.createTextNode('🐆'))" />Cargá tus pronósticos</h2>
         <p class="muted">Las predicciones de cada partido se cierran <strong id="lockMins">60</strong> min antes del inicio (hora de Argentina).</p>
       </div>
       <div id="groupsContainer"></div>
@@ -108,7 +121,7 @@
     <!-- ===================== Ranking ===================== -->
     <section id="view-ranking" class="view" hidden>
       <div class="view-head">
-        <h2>Tabla de posiciones</h2>
+        <h2><img class="head-mascot" src="assets/aguila.png" alt="" onerror="this.replaceWith(document.createTextNode('🦅'))" />Tabla de posiciones</h2>
         <p class="muted">+1 punto por acertar el resultado · +1 punto extra si coincide el marcador exacto.</p>
       </div>
       <div id="rankingContainer"></div>
