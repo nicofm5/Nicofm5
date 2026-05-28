@@ -394,7 +394,7 @@
             return `
               <div class="admin-match">
                 <span class="am-when">${escapeHtml(formatAR(m.kickoffUTC))}</span>
-                <span class="am-teams">${escapeHtml(teamName(m.home))} vs ${escapeHtml(teamName(m.away))}</span>
+                <span class="am-teams"><img class="flag-xs" src="${flagUrl(m.home, 40)}" alt="" loading="lazy" /> ${escapeHtml(teamName(m.home))} <span class="vs">vs</span> <img class="flag-xs" src="${flagUrl(m.away, 40)}" alt="" loading="lazy" /> ${escapeHtml(teamName(m.away))}</span>
                 <span class="am-inputs">
                   <input type="number" min="0" class="goal" data-res="${m.id}" data-side="h" value="${r ? r.h : ''}" />
                   <span class="vs">-</span>
