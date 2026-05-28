@@ -38,6 +38,7 @@
     return raw.normalize('NFD').replace(/[̀-ͯ]/g, '') // saca acentos
       .replace(/\s+/g, ' ');
   }
+  function normalizeDni(v) { return (v || '').replace(/\D/g, ''); } // solo dígitos
 
   // Hora "efectiva" sincronizada con el servidor: base del bloqueo uniforme.
   const effectiveNow = () => Date.now() + state.clockOffset;
@@ -88,6 +89,12 @@
       errEl.hidden = false;
       return;
     }
+    const dni = normalizeDni($('#dni').value);
+    if (dni.length < 6) {
+      errEl.textContent = 'Ingresá un DNI válido (solo números).';
+      errEl.hidden = false;
+      return;
+    }
 
     const key = normalizeKey(first, last);
     const btn = $('#loginBtn');
@@ -95,10 +102,17 @@
 
     try {
       let player = await DB.getPlayer(key);
-      if (!player) {
-        const paymentRef = $('#paymentReference').value.trim();
+      if (player) {
+        const savedDni = normalizeDni(player.dni);
+        if (savedDni && savedDni !== dni) {
+          errEl.textContent = 'El DNI no coincide con el de ese nombre y apellido.';
+          errEl.hidden = false;
+          return; // el finally reactiva el botón
+        }
+        if (!savedDni) player = await DB.setDni(key, dni); // jugador previo sin DNI: lo registra
+      } else {
         player = await DB.createPlayer({
-          player_key: key, first_name: first, last_name: last, payment_reference: paymentRef,
+          player_key: key, first_name: first, last_name: last, dni,
         });
       }
       state.player = player;
@@ -443,10 +457,10 @@
             <span class="badge ${count >= MATCHES.length ? 'ok' : 'pending'}">${count}/${MATCHES.length} pronósticos</span>
           </div>
           <div class="ap-body">
-            <span>Comprobante/Alias: <strong>${escapeHtml(p.payment_reference || '—')}</strong></span>
+            <span>DNI: <strong>${escapeHtml(p.dni || '—')}</strong></span>
             <label class="switch">
               <input type="checkbox" data-validate="${escapeHtml(p.player_key)}" ${p.payment_validated ? 'checked' : ''} />
-              Pago validado
+              Acreditado
             </label>
             <button class="btn small ghost" data-view-plays="${escapeHtml(p.player_key)}">Ver jugadas</button>
           </div>

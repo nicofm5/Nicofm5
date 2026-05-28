@@ -61,7 +61,7 @@
 
       <div class="card login-card">
         <h2>Ingresá para jugar</h2>
-        <p class="muted">Identificate con tu nombre y apellido. Si ya jugaste, recuperás tus jugadas.</p>
+        <p class="muted">Identificate con tu nombre, apellido y DNI. El DNI es tu clave para recuperar tus jugadas; en el ranking solo se ve tu nombre y apellido.</p>
         <form id="loginForm" class="form">
           <div class="row">
             <label>Nombre
@@ -71,6 +71,10 @@
               <input type="text" id="lastName" autocomplete="family-name" required placeholder="Messi" />
             </label>
           </div>
+
+          <label>DNI <span class="muted">(tu clave para volver a entrar)</span>
+            <input type="text" id="dni" inputmode="numeric" autocomplete="off" required placeholder="Solo números, sin puntos" />
+          </label>
 
           <div id="entryBox" class="entry-box" hidden>
             <h3>Inscripción</h3>

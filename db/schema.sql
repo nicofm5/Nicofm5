@@ -20,6 +20,7 @@ create table if not exists public.players (
   player_key        text unique not null,          -- "nombre apellido" normalizado
   first_name        text not null,
   last_name         text not null,
+  dni               text,                            -- clave del jugador (no se muestra en el ranking)
   payment_reference text,                           -- nº comprobante / alias
   payment_validated boolean not null default false, -- lo marca el administrador
   predictions       jsonb not null default '{}'::jsonb, -- { "A1": {"h":2,"a":1}, ... }

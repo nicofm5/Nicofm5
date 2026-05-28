@@ -51,10 +51,11 @@
     return normalizePlayer(data);
   }
 
-  async function createPlayer({ player_key, first_name, last_name, payment_reference }) {
+  async function createPlayer({ player_key, first_name, last_name, payment_reference, dni }) {
     const record = {
       player_key, first_name, last_name,
       payment_reference: payment_reference || null,
+      dni: dni || null,
       predictions: {}, confirmed: false, payment_validated: false,
     };
     if (!REMOTE) {
@@ -68,7 +69,21 @@
     return normalizePlayer(data);
   }
 
-  // Guardar borrador (predicciones + comprobante) sin confirmar.
+  // Registrar el DNI (clave) de un jugador que ya existía sin DNI.
+  async function setDni(player_key, dni) {
+    if (!REMOTE) {
+      const all = lsGet(LS_PLAYERS, {});
+      if (!all[player_key]) return null;
+      all[player_key].dni = dni;
+      lsSet(LS_PLAYERS, all);
+      return normalizePlayer(all[player_key]);
+    }
+    const { data, error } = await sb.from('players').update({ dni }).eq('player_key', player_key).select().single();
+    if (error) throw error;
+    return normalizePlayer(data);
+  }
+
+  // Guardar predicciones (los partidos ya guardados quedan inmutables).
   async function savePredictions(player_key, predictions, payment_reference) {
     if (!REMOTE) {
       const all = lsGet(LS_PLAYERS, {});
@@ -146,7 +161,7 @@
 
   window.PRODE_DB = {
     isRemote: () => REMOTE,
-    getServerNow, getPlayer, createPlayer, savePredictions, confirmPlayer,
+    getServerNow, getPlayer, createPlayer, setDni, savePredictions, confirmPlayer,
     getAllPlayers, getResults, saveResult, setPaymentValidated,
   };
 })();
