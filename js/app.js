@@ -45,6 +45,11 @@
   function kickoffMs(match) { return new Date(match.kickoffUTC).getTime(); }
   function lockMs(match) { return kickoffMs(match) - LOCK_MS; }
   function isLocked(match) { return effectiveNow() >= lockMs(match); }
+  // ¿El jugador ya guardó (y por lo tanto bloqueó) este partido?
+  function hasSavedPred(match) {
+    const p = state.player && state.player.predictions;
+    return !!(p && p[match.id] && p[match.id].h != null && p[match.id].a != null);
+  }
 
   // Fecha/hora en zona horaria de Argentina (UTC-3).
   function formatAR(iso) {
@@ -113,14 +118,10 @@
     $('#userChip').hidden = false;
     $('#userChip').textContent = `${state.player.first_name} ${state.player.last_name}`;
     $('#logoutBtn').hidden = false;
-    // Si ya confirmó, no puede volver al editor: va directo al ticket.
-    if (state.player.confirmed) {
-      renderTicket();
-      showView('ticket');
-    } else {
-      renderGroups();
-      showView('fixture');
-    }
+    // El editor siempre está disponible: los partidos ya guardados se muestran
+    // bloqueados y los que faltan se pueden completar (hasta su horario límite).
+    renderGroups();
+    showView('fixture');
   }
 
   function logout() {
@@ -187,14 +188,18 @@
   // Actualiza en vivo qué partidos están cerrados (sin re-renderizar inputs).
   function refreshLocks() {
     MATCHES.forEach((m) => {
-      const locked = isLocked(m);
+      const timeLocked = isLocked(m);
+      const saved = hasSavedPred(m);
+      const locked = timeLocked || saved;
       const statusEl = $(`[data-status="${m.id}"]`);
       const card = $(`.match-card[data-match="${m.id}"]`);
       if (!statusEl || !card) return;
       $$(`input.goal[data-match="${m.id}"]`).forEach((inp) => { inp.disabled = locked; });
       card.classList.toggle('locked', locked);
-      if (locked) {
-        statusEl.innerHTML = '<span class="badge closed">🔒 Cerrado</span>';
+      if (saved) {
+        statusEl.innerHTML = '<span class="badge ok">✓ Guardado (bloqueado)</span>';
+      } else if (timeLocked) {
+        statusEl.innerHTML = '<span class="badge closed">🔒 Cerrado · sin pronóstico</span>';
       } else {
         const mins = Math.round((lockMs(m) - effectiveNow()) / 60000);
         statusEl.innerHTML = `<span class="badge open">Abierto · cierra en ${formatCountdown(mins)}</span>`;
@@ -215,7 +220,7 @@
     // Partimos de las predicciones existentes para no perder partidos ya cerrados.
     const preds = { ...(state.player.predictions || {}) };
     MATCHES.forEach((m) => {
-      if (isLocked(m)) return; // no se tocan los partidos cerrados
+      if (isLocked(m) || hasSavedPred(m)) return; // cerrados o ya guardados: no se tocan
       const hEl = $(`input.goal[data-match="${m.id}"][data-side="h"]`);
       const aEl = $(`input.goal[data-match="${m.id}"][data-side="a"]`);
       const hv = hEl.value.trim(), av = aEl.value.trim();
@@ -228,37 +233,31 @@
     return preds;
   }
 
-  async function saveDraft() {
+  async function savePlays() {
     const status = $('#saveStatus');
+    const existing = state.player.predictions || {};
     const preds = collectPredictions();
-    const paymentRef = state.player.payment_reference; // se setea en el alta
+    // Solo los partidos NUEVOS (los ya guardados no se vuelven a tocar).
+    const nuevos = Object.keys(preds).filter((id) => !existing[id]);
+    if (!nuevos.length) {
+      status.textContent = 'No hay pronósticos nuevos para guardar.';
+      setTimeout(() => { status.textContent = ''; }, 2500);
+      return;
+    }
+    const ok = window.confirm(
+      `Vas a guardar ${nuevos.length} pronóstico(s). Una vez guardados quedan BLOQUEADOS y no se pueden cambiar. ` +
+      `Los partidos que falten los podés completar más adelante, antes del horario de cada uno. ¿Guardar?`
+    );
+    if (!ok) return;
     status.textContent = 'Guardando...';
     try {
-      state.player = await DB.savePredictions(state.player.player_key, preds, paymentRef);
-      status.textContent = '✓ Borrador guardado';
-      setTimeout(() => { status.textContent = ''; }, 2500);
+      state.player = await DB.savePredictions(state.player.player_key, preds, state.player.payment_reference);
+      renderGroups(); // re-dibuja: los recién guardados quedan bloqueados
+      status.textContent = '✓ Pronósticos guardados y bloqueados';
+      setTimeout(() => { status.textContent = ''; }, 3000);
     } catch (err) {
       console.error(err);
       status.textContent = 'Error al guardar: ' + (err.message || err);
-    }
-  }
-
-  async function confirmPlays() {
-    const preds = collectPredictions();
-    const total = Object.keys(preds).length;
-    const ok = window.confirm(
-      `Vas a CONFIRMAR ${total} pronóstico(s). Una vez confirmado no podrás modificarlos. ¿Continuar?`
-    );
-    if (!ok) return;
-    const status = $('#saveStatus');
-    status.textContent = 'Confirmando...';
-    try {
-      state.player = await DB.confirmPlayer(state.player.player_key, preds, state.player.payment_reference);
-      renderTicket();
-      showView('ticket');
-    } catch (err) {
-      console.error(err);
-      status.textContent = 'Error al confirmar: ' + (err.message || err);
     }
   }
 
@@ -267,7 +266,7 @@
   // ============================================================================
   function ticketCode(player) {
     let hash = 0;
-    const base = (player.player_key || '') + (player.confirmed_at || '');
+    const base = (player.player_key || '');
     for (let i = 0; i < base.length; i++) hash = (hash * 31 + base.charCodeAt(i)) >>> 0;
     return 'MD26-' + hash.toString(36).toUpperCase().padStart(6, '0').slice(0, 6);
   }
@@ -291,7 +290,7 @@
         </div>`;
     }).join('') || '<p class="muted">No cargaste pronósticos.</p>';
 
-    const confirmedAt = p.confirmed_at ? formatAR(p.confirmed_at) : '—';
+    const updatedAt = p.updated_at ? formatAR(p.updated_at) : (p.confirmed_at ? formatAR(p.confirmed_at) : '—');
     const payRef = p.payment_reference
       ? `<div class="tk-line">Comprobante / Alias: <strong>${escapeHtml(p.payment_reference)}</strong></div>` : '';
     const payState = p.payment_validated
@@ -309,7 +308,7 @@
       <div class="ticket-info">
         <div class="tk-line">Jugador: <strong>${escapeHtml(p.first_name + ' ' + p.last_name)}</strong></div>
         <div class="tk-line">Código: <strong>${ticketCode(p)}</strong></div>
-        <div class="tk-line">Confirmado: <strong>${escapeHtml(confirmedAt)} h</strong></div>
+        <div class="tk-line">Actualizado: <strong>${escapeHtml(updatedAt)} h</strong></div>
         ${payRef}
         <div class="tk-line">${cfg.ENTRY_ENABLED ? payState : ''}</div>
       </div>
@@ -441,8 +440,7 @@
         <div class="admin-player">
           <div class="ap-head">
             <strong>${escapeHtml(p.first_name + ' ' + p.last_name)}</strong>
-            <span class="badge ${p.confirmed ? 'ok' : 'pending'}">${p.confirmed ? 'Confirmado' : 'Borrador'}</span>
-            <span class="muted">${count} jugada(s)</span>
+            <span class="badge ${count >= MATCHES.length ? 'ok' : 'pending'}">${count}/${MATCHES.length} pronósticos</span>
           </div>
           <div class="ap-body">
             <span>Comprobante/Alias: <strong>${escapeHtml(p.payment_reference || '—')}</strong></span>
@@ -520,23 +518,17 @@
   function bindEvents() {
     $('#loginForm').addEventListener('submit', handleLogin);
     $('#logoutBtn').addEventListener('click', logout);
-    $('#saveDraftBtn').addEventListener('click', saveDraft);
-    $('#confirmBtn').addEventListener('click', confirmPlays);
+    $('#saveDraftBtn').addEventListener('click', savePlays);
+    $('#ticketBtn').addEventListener('click', () => { renderTicket(); showView('ticket'); });
     $('#printBtn').addEventListener('click', () => window.print());
-    $('#backFromTicket').addEventListener('click', () => {
-      // Confirmado: solo puede ver el ticket; no vuelve al editor.
-      if (state.player && state.player.confirmed) showView('ranking');
-      else showView('fixture');
-      if (state.player && state.player.confirmed) renderRanking();
-    });
+    $('#backFromTicket').addEventListener('click', () => { renderGroups(); showView('fixture'); });
     $('#adminForm').addEventListener('submit', handleAdminLogin);
 
     $$('.nav-btn[data-view]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const view = btn.dataset.view;
         if (view === 'fixture') {
-          if (state.player && state.player.confirmed) { renderTicket(); showView('ticket'); }
-          else { renderGroups(); showView('fixture'); }
+          renderGroups(); showView('fixture');
         } else if (view === 'ranking') {
           showView('ranking'); renderRanking();
         } else if (view === 'admin') {

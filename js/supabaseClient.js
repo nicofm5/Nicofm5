@@ -72,8 +72,9 @@
   async function savePredictions(player_key, predictions, payment_reference) {
     if (!REMOTE) {
       const all = lsGet(LS_PLAYERS, {});
-      if (!all[player_key] || all[player_key].confirmed) return normalizePlayer(all[player_key]);
-      all[player_key].predictions = predictions;
+      if (!all[player_key]) return null;
+      // Inmutable por partido: lo ya guardado gana; solo se agregan partidos nuevos.
+      all[player_key].predictions = { ...predictions, ...(all[player_key].predictions || {}) };
       if (payment_reference !== undefined) all[player_key].payment_reference = payment_reference;
       lsSet(LS_PLAYERS, all);
       return normalizePlayer(all[player_key]);

@@ -51,20 +51,17 @@ begin
   return new;
 end $$;
 
--- ---------- Trigger: congelar jugadas una vez confirmadas --------------------
--- Si el jugador ya confirmó, ignora cualquier intento de cambiar predicciones,
--- el flag de confirmado o el nombre. PERO deja que el admin actualice
--- payment_validated. Así "no se puede re-editar" queda garantizado en la base.
-create or replace function public.protect_confirmed()
+-- ---------- Trigger: pronósticos inmutables por partido ----------------------
+-- Cada pronóstico guardado NO se puede cambiar; solo se pueden AGREGAR partidos
+-- nuevos. Se logra mezclando jsonb con el operador ||, dando precedencia a los
+-- valores viejos (old gana en las claves que ya existían). El nombre tampoco se
+-- puede cambiar una vez creado. payment_validated (admin) sí se puede actualizar.
+create or replace function public.protect_predictions()
 returns trigger language plpgsql as $$
 begin
-  if old.confirmed then
-    new.predictions  := old.predictions;
-    new.confirmed    := old.confirmed;
-    new.confirmed_at := old.confirmed_at;
-    new.first_name   := old.first_name;
-    new.last_name    := old.last_name;
-  end if;
+  new.predictions := new.predictions || old.predictions;
+  new.first_name  := old.first_name;
+  new.last_name   := old.last_name;
   return new;
 end $$;
 
@@ -74,7 +71,7 @@ create trigger trg_players_updated_at before update on public.players
 
 drop trigger if exists trg_players_protect on public.players;
 create trigger trg_players_protect before update on public.players
-  for each row execute function public.protect_confirmed();
+  for each row execute function public.protect_predictions();
 
 drop trigger if exists trg_results_updated_at on public.match_results;
 create trigger trg_results_updated_at before update on public.match_results
