@@ -28,6 +28,6 @@ window.PRODE_CONFIG = {
   ADMIN_PASSWORD: 'Laacademia555',
 
   // Branding (texto) ----------------------------------------------------------
-  APP_TITLE: 'PRODE Mundial 2026',
+  APP_TITLE: 'Mundial 2026 Prode · Vamos Argentina',
   APP_SUBTITLE: 'Fase de grupos · Canadá · México · Estados Unidos',
 };
