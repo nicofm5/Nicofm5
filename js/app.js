@@ -500,6 +500,7 @@
     $('#appTitle').textContent = cfg.APP_TITLE;
     $('#appSubtitle').textContent = cfg.APP_SUBTITLE;
     $('#lockMins').textContent = cfg.LOCK_MINUTES;
+    const ruleLock = $('#ruleLock'); if (ruleLock) ruleLock.textContent = cfg.LOCK_MINUTES;
     document.title = cfg.APP_TITLE;
 
     if (cfg.ENTRY_ENABLED) {
