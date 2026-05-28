@@ -16,7 +16,7 @@ window.PRODE_CONFIG = {
   SUPABASE_ANON_KEY: 'sb_publishable_IH70uWZpw8BHw_mse_QTZA_Ie6VjZ6t',   // clave publicable (segura para el navegador)
 
   // 2) Inscripción / premio ---------------------------------------------------
-  ENTRY_ENABLED: true,
+  ENTRY_ENABLED: false,
   ENTRY_COST: '$1000 ARS',
   ENTRY_ALIAS: 'nicofm5',               // alias / CBU / CVU donde reciben el pago
   ENTRY_NOTE: 'Transferí el valor de la inscripción y pegá el número de comprobante o tu alias para que el administrador valide tu participación.',
