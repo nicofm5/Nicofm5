@@ -392,12 +392,46 @@
     }
   }
 
+  async function syncResultsFromApi() {
+    const btn = $('#syncApiBtn');
+    const status = $('#syncApiStatus');
+    btn.disabled = true;
+    status.textContent = 'Sincronizando...';
+    status.className = 'muted';
+    try {
+      const res = await fetch('/api/sync-results');
+      const data = await res.json();
+      if (!res.ok) {
+        status.textContent = 'Error: ' + (data.error || res.status);
+        status.className = 'error';
+      } else if (data.synced === 0) {
+        status.textContent = 'Sin resultados nuevos.';
+        status.className = 'muted';
+      } else {
+        status.textContent = `Sincronizados: ${data.synced} partido(s) (${data.match_ids.join(', ')})`;
+        status.className = 'badge ok';
+        await renderAdminResults();
+      }
+    } catch (err) {
+      status.textContent = 'Error de conexión: ' + err.message;
+      status.className = 'error';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   async function renderAdminResults() {
     const panel = $('#adminResults');
     panel.innerHTML = '<p class="muted">Cargando partidos...</p>';
     state.results = await DB.getResults();
     const groupLetters = Object.keys(GROUPS);
-    panel.innerHTML = groupLetters.map((g) => {
+    panel.innerHTML = `
+      <div class="sync-bar">
+        <button class="btn small" id="syncApiBtn">Sincronizar desde API</button>
+        <span id="syncApiStatus" class="muted"></span>
+        <span class="muted small-note">Se actualiza automáticamente cada hora vía cron.</span>
+      </div>
+      ` + groupLetters.map((g) => {
       const matches = MATCHES.filter((m) => m.group === g);
       return `
         <section class="group">
@@ -423,6 +457,9 @@
     panel.querySelectorAll('[data-save-res]').forEach((btn) => {
       btn.addEventListener('click', () => saveAdminResult(btn.dataset.saveRes));
     });
+
+    const syncBtn = $('#syncApiBtn');
+    if (syncBtn) syncBtn.addEventListener('click', syncResultsFromApi);
   }
 
   async function saveAdminResult(matchId) {
