@@ -57,11 +57,11 @@ En `js/leagues.js`, copiá un bloque existente dentro de `PRODE_LEAGUES` y edit�
 
 ## Ligas actuales
 
-| Liga            | clave             | Supabase            | Workflow                          |
-|-----------------|-------------------|---------------------|-----------------------------------|
-| Libro Mundial   | `libro-mundial`   | configurado         | `sync-results.yml`                |
-| Productos Pozo  | `productos-pozo`  | **falta completar** | `sync-productos-pozo.yml`         |
+| Liga             | clave              | Supabase     | Workflow                  |
+|------------------|--------------------|--------------|---------------------------|
+| Vamos Argentina  | `vamos-argentina`  | configurado  | `sync-results.yml`        |
+| Productos Pozo   | `productos-pozo`   | configurado  | `sync-productos-pozo.yml` |
 
-Pendiente para Productos Pozo: crear su Supabase, pegar URL/anon key en
-`leagues.js`, crear su proyecto Vercel, y cargar los secrets
-`SUPABASE_URL_POZO` / `SUPABASE_ANON_KEY_POZO`.
+> "Libro Mundial" todavía no está creada. Para sumarla, seguí los pasos de
+> "Agregar una liga nueva" más arriba (Supabase nuevo, entrada en `leagues.js`,
+> proyecto Vercel y workflow propios).

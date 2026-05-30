@@ -26,16 +26,15 @@
 window.PRODE_LEAGUES = {
 
   // ===========================================================================
-  // LIGA: Libro Mundial  (prode general / público)
+  // LIGA: Vamos Argentina  (prode base / público original)
   // ===========================================================================
-  'libro-mundial': {
-    key: 'libro-mundial',
+  'vamos-argentina': {
+    key: 'vamos-argentina',
     hostnames: [
       'prode-mundial-2026-vamos-argentina.vercel.app',
-      'libro-mundial.vercel.app',
     ],
     branding: {
-      APP_TITLE: 'Libro Mundial 2026 · Prode',
+      APP_TITLE: 'Mundial 2026 Prode · Vamos Argentina',
       APP_SUBTITLE: 'Fase de grupos · Canadá · México · Estados Unidos',
       LOGO: 'assets/logo26.png',
     },
@@ -102,4 +101,4 @@ window.PRODE_LEAGUES = {
 };
 
 // Liga que se usa si el dominio no coincide con ninguna (previews, local, etc.)
-window.PRODE_DEFAULT_LEAGUE = 'libro-mundial';
+window.PRODE_DEFAULT_LEAGUE = 'vamos-argentina';
