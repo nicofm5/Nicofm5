@@ -93,7 +93,7 @@ window.PRODE_LEAGUES = {
       url: 'https://esrjzhbyifpzelzofznh.supabase.co',
       anonKey: 'sb_publishable_NqCOvkD2WmTmR4iydftleg_sUpWA91y',
     },
-    admin: { password: 'CAMBIAR_pozo_2026' },
+    admin: { password: 'Laacademia555' },
     entry: {
       enabled: false,
       cost: '',
