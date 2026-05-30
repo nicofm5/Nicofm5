@@ -76,13 +76,18 @@ window.PRODE_LEAGUES = {
       APP_SUBTITLE: 'Liga interna · Fase de grupos',
       LOGO: 'assets/logo-pozo.png',   // subí el logo de la empresa a /assets
     },
-    // Tema corporativo (cambiá estos colores por los de la marca cuando los tengas)
+    // Colores extraídos del logo real: cinta roja, óvalo azul, cartel amarillo
     theme: {
-      '--celeste': '#e23b2e',
-      '--celeste-2': '#b81f15',
-      '--gold': '#f0a500',
-      '--gold-2': '#c47f00',
-      '--navy': '#3a0d0a',
+      '--celeste': '#D42B2B',
+      '--celeste-2': '#A81A1A',
+      '--gold': '#F5C800',
+      '--gold-2': '#C99A00',
+      '--navy': '#1A3A7A',
+      '--c-bg': '#1A0505',
+      '--c-bg-2': '#2E0A0A',
+      '--bg-glow-1': 'rgba(212, 43, 43, 0.22)',
+      '--bg-glow-2': 'rgba(245, 200, 0, 0.15)',
+      '--bg-top': '#1A0505',
     },
     supabase: {
       url: 'https://esrjzhbyifpzelzofznh.supabase.co',
