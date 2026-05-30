@@ -114,8 +114,18 @@ h1, h2, h3, .display { font-family: 'Anton', 'Inter', sans-serif; font-weight: 4
 
 /* ---------- Hero / bienvenida ---------- */
 .hero { position: relative; text-align: center; color: #fff; padding: 18px 8px 8px; }
+.hero-logos {
+  display: flex; align-items: center; justify-content: center;
+  gap: clamp(12px, 4vw, 26px); flex-wrap: wrap; margin-bottom: 6px;
+}
 .hero-logo {
   width: clamp(92px, 17vw, 132px); height: auto; display: block; margin: 0 auto 6px;
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55));
+  animation: pop .5s ease both;
+}
+.hero-logos .hero-logo { margin: 0; }
+.hero-league-logo {
+  width: clamp(120px, 24vw, 190px); height: auto; display: block;
   filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55));
   animation: pop .5s ease both;
 }

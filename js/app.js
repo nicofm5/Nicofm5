@@ -555,11 +555,17 @@
         if (cfg.THEME[varName]) root.style.setProperty(varName, cfg.THEME[varName]);
       }
     }
-    // Logo de la liga (barra superior y hero), si está definido
+    // Logos: el header muestra el logo de la liga; en el hero conviven el logo
+    // oficial de la Copa 2026 (siempre) y el de la liga (si es distinto).
     if (cfg.LOGO) {
-      document.querySelectorAll('.brand-logo, .hero-logo').forEach((img) => {
-        img.src = cfg.LOGO;
-      });
+      const isWorldCup = cfg.LOGO === 'assets/logo26.png';
+      document.querySelectorAll('.brand-logo').forEach((img) => { img.src = cfg.LOGO; });
+      const leagueLogo = document.querySelector('.hero-league-logo');
+      if (leagueLogo && !isWorldCup) {
+        leagueLogo.src = cfg.LOGO;
+        leagueLogo.alt = cfg.APP_TITLE || '';
+        leagueLogo.hidden = false;
+      }
     }
 
     $('#appTitle').textContent = cfg.APP_TITLE;
