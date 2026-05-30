@@ -86,8 +86,8 @@ window.PRODE_LEAGUES = {
       '--navy': '#3a0d0a',
     },
     supabase: {
-      url: '',        // ← pegá la URL del Supabase de Productos Pozo
-      anonKey: '',    // ← pegá la anon key del Supabase de Productos Pozo
+      url: 'https://esrjzhbyifpzelzofznh.supabase.co',
+      anonKey: 'sb_publishable_NqCOvkD2WmTmR4iydftleg_sUpWA91y',
     },
     admin: { password: 'CAMBIAR_pozo_2026' },
     entry: {
