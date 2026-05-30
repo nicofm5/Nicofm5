@@ -1,4 +1,4 @@
-name: Sincronizar resultados Mundial 2026
+name: Sync resultados · Libro Mundial
 
 # Corre cada hora automáticamente, y también se puede disparar a mano
 # desde la pestaña "Actions" de GitHub con el botón "Run workflow".

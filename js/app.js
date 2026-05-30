@@ -548,6 +548,20 @@
   // INICIALIZACIÓN
   // ============================================================================
   function applyConfigToUI() {
+    // Tema (colores) de la liga: sobrescribe variables CSS en :root
+    if (cfg.THEME && typeof cfg.THEME === 'object') {
+      const root = document.documentElement;
+      for (const varName in cfg.THEME) {
+        if (cfg.THEME[varName]) root.style.setProperty(varName, cfg.THEME[varName]);
+      }
+    }
+    // Logo de la liga (barra superior y hero), si está definido
+    if (cfg.LOGO) {
+      document.querySelectorAll('.brand-logo, .hero-logo').forEach((img) => {
+        img.src = cfg.LOGO;
+      });
+    }
+
     $('#appTitle').textContent = cfg.APP_TITLE;
     $('#appSubtitle').textContent = cfg.APP_SUBTITLE;
     $('#lockMins').textContent = cfg.LOCK_MINUTES;

@@ -1,33 +1,76 @@
 /*
- * config.js — Configuración de la app (editá SOLO este archivo para personalizar)
+ * config.js — Resolutor de la liga activa (multi-liga)
  * ==============================================================================
- * 1) BACKEND: pegá la URL y la clave anónima (anon public) de tu proyecto Supabase.
- *    Si los dejás vacíos, la app funciona en "modo demo" usando localStorage
- *    (NO es multijugador: cada navegador guarda lo suyo). Sirve para probar.
- * 2) INSCRIPCIÓN: costo y alias de transferencia que se muestran al jugador.
- * 3) BLOQUEO: minutos antes del inicio en que se cierran las predicciones.
- * 4) ADMIN: contraseña del panel de administración.
- *    OJO: es un candado del lado del cliente (app casual). Cualquiera con
- *    conocimientos podría leerla en el código. No la reutilices de otra cuenta.
+ * NO edites este archivo para personalizar. Toda la configuración de cada liga
+ * vive en js/leagues.js. Este archivo solo decide CUÁL liga mostrar y arma el
+ * objeto window.PRODE_CONFIG que el resto de la app consume.
+ *
+ * Cómo elige la liga (en este orden):
+ *   1) ?liga=key en la URL  (para probar; queda recordado en este navegador)
+ *   2) el dominio actual, comparándolo con los "hostnames" de cada liga
+ *   3) la liga por defecto (window.PRODE_DEFAULT_LEAGUE)
  */
-window.PRODE_CONFIG = {
-  // 1) Supabase ---------------------------------------------------------------
-  SUPABASE_URL: 'https://wqxxwpzuizltvzsalxoa.supabase.co',
-  SUPABASE_ANON_KEY: 'sb_publishable_IH70uWZpw8BHw_mse_QTZA_Ie6VjZ6t',   // clave publicable (segura para el navegador)
+(function () {
+  const leagues = window.PRODE_LEAGUES || {};
+  const defaultKey = window.PRODE_DEFAULT_LEAGUE;
 
-  // 2) Inscripción / premio ---------------------------------------------------
-  ENTRY_ENABLED: false,
-  ENTRY_COST: '$1000 ARS',
-  ENTRY_ALIAS: 'nicofm5',               // alias / CBU / CVU donde reciben el pago
-  ENTRY_NOTE: 'Transferí el valor de la inscripción y pegá el número de comprobante o tu alias para que el administrador valide tu participación.',
+  function pickLeagueKey() {
+    // 1) override por querystring (?liga=...) — útil para probar
+    try {
+      const qs = new URLSearchParams(window.location.search);
+      const q = qs.get('liga');
+      if (q && leagues[q]) {
+        localStorage.setItem('prode_liga_override', q);
+        return q;
+      }
+      const saved = localStorage.getItem('prode_liga_override');
+      if (saved && leagues[saved]) return saved;
+    } catch (e) { /* sin localStorage: seguimos */ }
 
-  // 3) Bloqueo horario --------------------------------------------------------
-  LOCK_MINUTES: 60,        // se cierra la edición 60 min antes del inicio
+    // 2) por dominio
+    const host = window.location.hostname;
+    for (const key in leagues) {
+      const hosts = leagues[key].hostnames || [];
+      if (hosts.includes(host)) return key;
+    }
 
-  // 4) Panel de administración ------------------------------------------------
-  ADMIN_PASSWORD: 'Laacademia555',
+    // 3) por defecto
+    if (defaultKey && leagues[defaultKey]) return defaultKey;
+    return Object.keys(leagues)[0];
+  }
 
-  // Branding (texto) ----------------------------------------------------------
-  APP_TITLE: 'Mundial 2026 Prode · Vamos Argentina',
-  APP_SUBTITLE: 'Fase de grupos · Canadá · México · Estados Unidos',
-};
+  const key = pickLeagueKey();
+  const L = leagues[key] || {};
+  const b = L.branding || {};
+  const sb = L.supabase || {};
+  const entry = L.entry || {};
+
+  // Objeto que el resto de la app ya conoce (forma original de PRODE_CONFIG)
+  window.PRODE_CONFIG = {
+    LEAGUE_KEY: key,
+
+    // Supabase
+    SUPABASE_URL: sb.url || '',
+    SUPABASE_ANON_KEY: sb.anonKey || '',
+
+    // Inscripción / premio
+    ENTRY_ENABLED: !!entry.enabled,
+    ENTRY_COST: entry.cost || '',
+    ENTRY_ALIAS: entry.alias || '',
+    ENTRY_NOTE: entry.note || '',
+
+    // Bloqueo horario
+    LOCK_MINUTES: L.lockMinutes != null ? L.lockMinutes : 60,
+
+    // Admin
+    ADMIN_PASSWORD: (L.admin && L.admin.password) || '',
+
+    // Branding
+    APP_TITLE: b.APP_TITLE || 'Prode Mundial 2026',
+    APP_SUBTITLE: b.APP_SUBTITLE || 'Fase de grupos',
+    LOGO: b.LOGO || 'assets/logo26.png',
+
+    // Tema (colores) para aplicar a las variables CSS
+    THEME: L.theme || {},
+  };
+})();

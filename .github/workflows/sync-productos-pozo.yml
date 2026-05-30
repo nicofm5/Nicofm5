@@ -1,0 +1,33 @@
+name: Sync resultados · Productos Pozo
+
+# Sincroniza los resultados del Mundial 2026 en el Supabase de la liga
+# "Productos Pozo". Usa el MISMO script que las demás ligas
+# (scripts/sync-results.mjs); solo cambian los secrets de Supabase.
+#
+# REQUISITOS (cargar en Settings → Secrets and variables → Actions):
+#   FOOTBALL_DATA_API_KEY     (compartido con las demás ligas)
+#   SUPABASE_URL_POZO         URL del Supabase de Productos Pozo
+#   SUPABASE_ANON_KEY_POZO    anon key del Supabase de Productos Pozo
+on:
+  schedule:
+    - cron: '5 * * * *'    # cada hora (5 min después de la liga general)
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repo
+        uses: actions/checkout@v4
+
+      - name: Usar Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sincronizar resultados a Supabase (Productos Pozo)
+        env:
+          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL_POZO }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY_POZO }}
+        run: node scripts/sync-results.mjs
