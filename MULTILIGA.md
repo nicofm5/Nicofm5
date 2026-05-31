@@ -25,11 +25,24 @@ Probar una liga sin tener su dominio:
 
 ---
 
+## Migración pendiente para ligas YA creadas (admin: eliminar jugadores)
+
+Si tu liga se creó con una versión vieja de `db/schema.sql`, corré una vez en el
+SQL Editor de **cada** Supabase (Vamos Argentina y Productos Pozo) el archivo
+`db/migration-admin.sql`. Habilita que el panel admin pueda **eliminar
+jugadores**. ("Blanquear clave" ya funciona sin migración.)
+
+## Premios del podio
+
+Cada liga define sus premios 1°/2°/3° en `js/leagues.js` (campo `prizes`).
+Aparecen en el podio del ranking. Editá esos textos cuando los definas.
+
 ## Agregar una liga nueva (paso a paso)
 
 ### 1) Crear el Supabase de la liga
 - Entrá a https://supabase.com → New project.
-- En el SQL Editor, pegá y corré el contenido de `db/schema.sql`.
+- En el SQL Editor, pegá y corré el contenido de `db/schema.sql`
+  (ya incluye el permiso de borrado de jugadores).
 - Copiá la **Project URL** y la **anon public key** (Settings → API).
 
 ### 2) Registrar la liga en el código

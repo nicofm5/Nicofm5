@@ -57,6 +57,12 @@ window.PRODE_LEAGUES = {
       alias: 'nicofm5',
       note: 'Transferí el valor de la inscripción y pegá el número de comprobante o tu alias para que el administrador valide tu participación.',
     },
+    // Premios del podio (1°, 2° y 3°). Editá estos textos cuando los definas.
+    prizes: {
+      first: '1° Premio',
+      second: '2° Premio',
+      third: '3° Premio',
+    },
     lockMinutes: 60,
   },
 
@@ -99,6 +105,12 @@ window.PRODE_LEAGUES = {
       cost: '',
       alias: '',
       note: '',
+    },
+    // Premios del podio (1°, 2° y 3°). Editá estos textos cuando los definas.
+    prizes: {
+      first: '1° Premio',
+      second: '2° Premio',
+      third: '3° Premio',
     },
     lockMinutes: 60,
   },

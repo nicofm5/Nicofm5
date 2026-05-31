@@ -93,6 +93,9 @@ create policy players_insert on public.players for insert with check (true);
 drop policy if exists players_update on public.players;
 create policy players_update on public.players for update using (true) with check (true);
 
+drop policy if exists players_delete on public.players;
+create policy players_delete on public.players for delete using (true);
+
 -- match_results: lectura pública; escritura abierta (la app la protege con
 -- ADMIN_PASSWORD del lado cliente).
 drop policy if exists results_select on public.match_results;

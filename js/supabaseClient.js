@@ -149,6 +149,30 @@
     if (error) throw error;
   }
 
+  // Eliminar un jugador por completo (solo admin).
+  async function deletePlayer(player_key) {
+    if (!REMOTE) {
+      const all = lsGet(LS_PLAYERS, {});
+      delete all[player_key];
+      lsSet(LS_PLAYERS, all);
+      return;
+    }
+    const { error } = await sb.from('players').delete().eq('player_key', player_key);
+    if (error) throw error;
+  }
+
+  // Blanquear la clave (DNI) de un jugador: la deja vacía para que pueda
+  // reingresar y registrar una nueva. No toca sus jugadas (solo admin).
+  async function resetDni(player_key) {
+    if (!REMOTE) {
+      const all = lsGet(LS_PLAYERS, {});
+      if (all[player_key]) { all[player_key].dni = null; lsSet(LS_PLAYERS, all); }
+      return;
+    }
+    const { error } = await sb.from('players').update({ dni: null }).eq('player_key', player_key);
+    if (error) throw error;
+  }
+
   async function setPaymentValidated(player_key, validated) {
     if (!REMOTE) {
       const all = lsGet(LS_PLAYERS, {});
@@ -163,5 +187,6 @@
     isRemote: () => REMOTE,
     getServerNow, getPlayer, createPlayer, setDni, savePredictions, confirmPlayer,
     getAllPlayers, getResults, saveResult, setPaymentValidated,
+    deletePlayer, resetDni,
   };
 })();

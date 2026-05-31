@@ -44,6 +44,7 @@
   const b = L.branding || {};
   const sb = L.supabase || {};
   const entry = L.entry || {};
+  const prizes = L.prizes || {};
 
   // Objeto que el resto de la app ya conoce (forma original de PRODE_CONFIG)
   window.PRODE_CONFIG = {
@@ -72,5 +73,12 @@
 
     // Tema (colores) para aplicar a las variables CSS
     THEME: L.theme || {},
+
+    // Premios del podio (1°, 2°, 3°)
+    PRIZES: {
+      first: prizes.first || '1° Premio',
+      second: prizes.second || '2° Premio',
+      third: prizes.third || '3° Premio',
+    },
   };
 })();

@@ -61,6 +61,13 @@
     });
   }
 
+  function formatDateAR(iso) {
+    return new Date(iso).toLocaleDateString('es-AR', {
+      timeZone: 'America/Argentina/Buenos_Aires',
+      day: '2-digit', month: '2-digit', year: 'numeric',
+    });
+  }
+
   function teamName(key) { return TEAMS[key].name; }
 
   // ----- Navegación / vistas -------------------------------------------------
@@ -336,6 +343,39 @@
   // ============================================================================
   // RANKING
   // ============================================================================
+  // Podio visual de los 3 primeros, con su premio. Solo aparece cuando ya hay
+  // al menos un partido jugado y alguien con puntos.
+  function podiumHTML(board) {
+    const prizes = cfg.PRIZES || {};
+    const hasPoints = board.some((r) => r.points > 0);
+    if (!hasPoints) return '';
+
+    // Tomamos el primero de cada puesto 1/2/3 (en empates, el orden de desempate ya decidió).
+    const byRank = (n) => board.find((r) => r.rank === n);
+    const slots = [
+      { r: byRank(2), pos: 2, medal: '🥈', prize: prizes.second },
+      { r: byRank(1), pos: 1, medal: '🥇', prize: prizes.first },
+      { r: byRank(3), pos: 3, medal: '🥉', prize: prizes.third },
+    ];
+
+    const cards = slots.map((s) => {
+      if (!s.r) return `<div class="podium-slot empty pos-${s.pos}"></div>`;
+      const me = state.player && s.r.player_key === state.player.player_key ? 'me' : '';
+      return `
+        <div class="podium-slot pos-${s.pos} ${me}">
+          <div class="podium-medal">${s.medal}</div>
+          <div class="podium-name">${escapeHtml(s.r.name)}</div>
+          <div class="podium-pts">${s.r.points} pts</div>
+          <div class="podium-stand">
+            <span class="podium-num">${s.pos}°</span>
+          </div>
+          ${s.prize ? `<div class="podium-prize">${escapeHtml(s.prize)}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    return `<div class="podium" aria-label="Podio">${cards}</div>`;
+  }
+
   async function renderRanking() {
     const container = $('#rankingContainer');
     container.innerHTML = '<p class="muted">Cargando tabla...</p>';
@@ -348,6 +388,7 @@
       if (!board.length) { container.innerHTML = '<p class="muted">Todavía no hay jugadores.</p>'; return; }
 
       container.innerHTML = `
+        ${podiumHTML(board)}
         <p class="muted">${playedCount} partido(s) con resultado cargado.</p>
         <div class="table-wrap">
           <table class="ranking">
@@ -355,15 +396,22 @@
               <tr><th>#</th><th>Jugador</th><th>Pts</th><th>Aciertos</th><th>Exactos</th><th>Pago</th></tr>
             </thead>
             <tbody>
-              ${board.map((r) => `
-                <tr class="${state.player && r.player_key === state.player.player_key ? 'me' : ''}">
-                  <td class="rank">${r.rank}</td>
+              ${board.map((r) => {
+                const medal = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : '';
+                const cls = [
+                  state.player && r.player_key === state.player.player_key ? 'me' : '',
+                  r.rank <= 3 ? `top top-${r.rank}` : '',
+                ].filter(Boolean).join(' ');
+                return `
+                <tr class="${cls}">
+                  <td class="rank">${medal || r.rank}</td>
                   <td>${escapeHtml(r.name)}</td>
                   <td class="pts">${r.points}</td>
                   <td>${r.hits}</td>
                   <td>${r.exact}</td>
                   <td>${r.payment_validated ? '✅' : '—'}</td>
-                </tr>`).join('')}
+                </tr>`;
+              }).join('')}
             </tbody>
           </table>
         </div>`;
@@ -485,8 +533,18 @@
     const players = await DB.getAllPlayers();
     if (!players.length) { panel.innerHTML = '<p class="muted">Aún no hay jugadores.</p>'; return; }
 
-    panel.innerHTML = players.map((p) => {
+    // Orden alfabético para que sea fácil encontrar a alguien.
+    players.sort((a, b) =>
+      `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, 'es'));
+
+    panel.innerHTML = `
+      <div class="players-bar">
+        <span class="muted">${players.length} jugador(es) registrado(s).</span>
+        <button class="btn small ghost" id="exportPlayersBtn">⬇ Exportar CSV</button>
+      </div>
+      ` + players.map((p) => {
       const count = Object.keys(p.predictions || {}).length;
+      const since = p.created_at ? formatDateAR(p.created_at) : '—';
       return `
         <div class="admin-player">
           <div class="ap-head">
@@ -495,11 +553,14 @@
           </div>
           <div class="ap-body">
             <span>DNI: <strong>${escapeHtml(p.dni || '—')}</strong></span>
+            <span class="muted">Registrado: ${escapeHtml(since)}</span>
             <label class="switch">
               <input type="checkbox" data-validate="${escapeHtml(p.player_key)}" ${p.payment_validated ? 'checked' : ''} />
               Acreditado
             </label>
             <button class="btn small ghost" data-view-plays="${escapeHtml(p.player_key)}">Ver jugadas</button>
+            <button class="btn small ghost" data-reset-dni="${escapeHtml(p.player_key)}">Blanquear clave</button>
+            <button class="btn small danger" data-del-player="${escapeHtml(p.player_key)}">Eliminar</button>
           </div>
           <div class="ap-plays" data-plays="${escapeHtml(p.player_key)}" hidden></div>
         </div>`;
@@ -520,6 +581,58 @@
         else box.hidden = true;
       });
     });
+    panel.querySelectorAll('[data-reset-dni]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const key = btn.dataset.resetDni;
+        const p = players.find((x) => x.player_key === key);
+        const name = p ? `${p.first_name} ${p.last_name}` : 'este jugador';
+        if (!confirm(`¿Blanquear la clave (DNI) de ${name}?\n\nVa a poder volver a ingresar y cargar un DNI nuevo. Sus jugadas NO se borran.`)) return;
+        btn.disabled = true;
+        try { await DB.resetDni(key); await renderAdminPlayers(); }
+        catch (err) { console.error(err); alert('No se pudo blanquear la clave: ' + (err.message || '')); btn.disabled = false; }
+      });
+    });
+    panel.querySelectorAll('[data-del-player]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const key = btn.dataset.delPlayer;
+        const p = players.find((x) => x.player_key === key);
+        const name = p ? `${p.first_name} ${p.last_name}` : 'este jugador';
+        if (!confirm(`¿Eliminar a ${name}?\n\nSe borran sus datos y todas sus jugadas. Esta acción NO se puede deshacer.`)) return;
+        btn.disabled = true;
+        try { await DB.deletePlayer(key); await renderAdminPlayers(); }
+        catch (err) { console.error(err); alert('No se pudo eliminar: ' + (err.message || '')); btn.disabled = false; }
+      });
+    });
+    const exportBtn = $('#exportPlayersBtn');
+    if (exportBtn) exportBtn.addEventListener('click', () => exportPlayersCSV(players));
+  }
+
+  // Descarga un CSV con los jugadores, sus datos y puntaje actual.
+  function exportPlayersCSV(players) {
+    const board = buildLeaderboard(players, state.results || {});
+    const ptsByKey = {};
+    board.forEach((r) => { ptsByKey[r.player_key] = r; });
+    const header = ['Puesto', 'Nombre', 'Apellido', 'DNI', 'Acreditado', 'Pronosticos', 'Puntos', 'Aciertos', 'Exactos', 'Registrado'];
+    const rows = players.map((p) => {
+      const r = ptsByKey[p.player_key] || {};
+      const count = Object.keys(p.predictions || {}).length;
+      return [
+        r.rank ?? '', p.first_name, p.last_name, p.dni || '',
+        p.payment_validated ? 'Si' : 'No', count,
+        r.points ?? 0, r.hits ?? 0, r.exact ?? 0,
+        p.created_at ? formatDateAR(p.created_at) : '',
+      ];
+    });
+    const csv = [header, ...rows]
+      .map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
+      .join('\r\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `jugadores-${cfg.LEAGUE_KEY || 'prode'}-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function playerPlaysHTML(p) {
