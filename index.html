@@ -164,6 +164,18 @@
     </section>
   </main>
 
+  <!-- Banner de liga cruzada (se muestra solo si la liga lo configura) -->
+  <footer class="cross-promo" id="crossPromo" hidden>
+    <div class="cross-promo-inner">
+      <span class="cross-promo-icon">📖</span>
+      <div class="cross-promo-text">
+        <strong id="crossPromoTitle"></strong>
+        <span id="crossPromoDesc"></span>
+      </div>
+      <a class="btn primary cross-promo-btn" id="crossPromoLink" target="_blank" rel="noopener">Sumarme</a>
+    </div>
+  </footer>
+
   <!-- ===================== Scripts ===================== -->
   <!-- Cliente Supabase (CDN UMD). Si no configurás Supabase, la app usa localStorage. -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

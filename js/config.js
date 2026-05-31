@@ -74,6 +74,9 @@
     // Tema (colores) para aplicar a las variables CSS
     THEME: L.theme || {},
 
+    // Banner de liga cruzada
+    CROSS_PROMO: L.crossPromo || null,
+
     // Premios del podio (1°, 2°, 3°)
     PRIZES: {
       first: prizes.first || '1° Premio',

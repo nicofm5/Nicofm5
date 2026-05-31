@@ -697,6 +697,18 @@
       $('#entryNote').textContent = cfg.ENTRY_NOTE;
     }
 
+    // Banner de liga cruzada al pie
+    const promo = cfg.CROSS_PROMO;
+    const promoEl = $('#crossPromo');
+    if (promo && promoEl) {
+      $('#crossPromoTitle').textContent = promo.title || '';
+      $('#crossPromoDesc').textContent = promo.desc || '';
+      const link = $('#crossPromoLink');
+      link.href = promo.url || '#';
+      link.textContent = promo.btnText || 'Ir';
+      promoEl.hidden = false;
+    }
+
     const note = $('#backendNote');
     note.textContent = DB.isRemote()
       ? '🟢 Conectado al servidor compartido (multijugador).'
