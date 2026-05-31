@@ -65,8 +65,8 @@ window.PRODE_LEAGUES = {
     },
     // Banner al pie invitando a otra app (dejá en null para no mostrar).
     crossPromo: {
-      title: '¿Ya jugás el Libro del Mundial?',
-      desc: 'Completá tu pronóstico también en el Libro del Mundial 2026 y viví el torneo al máximo.',
+      title: '¿YA ENTRASTE AL LIBRO DEL MUNDIAL?',
+      desc: 'Informate sobre el Mundial, aprendé y jugá.',
       url: 'https://prode-mundial-2026-vamos-argentina.vercel.app/',
       btnText: 'Ir al Libro del Mundial',
     },
