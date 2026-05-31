@@ -387,13 +387,16 @@
 
       if (!board.length) { container.innerHTML = '<p class="muted">Todavía no hay jugadores.</p>'; return; }
 
+      // La columna "Pago" solo se muestra si la liga cobra inscripción.
+      const showPay = !!cfg.ENTRY_ENABLED;
+
       container.innerHTML = `
         ${podiumHTML(board)}
         <p class="muted">${playedCount} partido(s) con resultado cargado.</p>
         <div class="table-wrap">
           <table class="ranking">
             <thead>
-              <tr><th>#</th><th>Jugador</th><th>Pts</th><th>Aciertos</th><th>Exactos</th><th>Pago</th></tr>
+              <tr><th>#</th><th>Jugador</th><th>Pts</th><th>Aciertos</th><th>Exactos</th>${showPay ? '<th>Pago</th>' : ''}</tr>
             </thead>
             <tbody>
               ${board.map((r) => {
@@ -409,7 +412,7 @@
                   <td class="pts">${r.points}</td>
                   <td>${r.hits}</td>
                   <td>${r.exact}</td>
-                  <td>${r.payment_validated ? '✅' : '—'}</td>
+                  ${showPay ? `<td>${r.payment_validated ? '✅' : '—'}</td>` : ''}
                 </tr>`;
               }).join('')}
             </tbody>
