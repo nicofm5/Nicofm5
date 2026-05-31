@@ -67,7 +67,7 @@ window.PRODE_LEAGUES = {
     crossPromo: {
       title: '¿YA ENTRASTE AL LIBRO DEL MUNDIAL?',
       desc: 'Informate sobre el Mundial, aprendé y jugá.',
-      url: 'https://prode-mundial-2026-vamos-argentina.vercel.app/',
+      url: 'https://nicofm5.github.io/libro-mundial/',
       btnText: 'Ir al Libro del Mundial',
     },
     lockMinutes: 60,
