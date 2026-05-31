@@ -372,6 +372,14 @@ table.ranking tr.top.me { background: #eef6ff; }
 .cross-promo-text { flex: 1; min-width: 180px; color: #e0e8f8; }
 .cross-promo-text strong { display: block; font-size: 16px; margin-bottom: 3px; color: #fff; }
 .cross-promo-text span { font-size: 13px; color: #aeb8d0; }
+.cross-promo-free {
+  flex-shrink: 0; align-self: center;
+  background: #16a34a; color: #fff; font-weight: 800; font-size: 13px;
+  letter-spacing: .5px; padding: 5px 12px; border-radius: 999px;
+  box-shadow: 0 3px 10px rgba(22,163,74,.4);
+  animation: pulseFree 1.6s ease-in-out infinite;
+}
+@keyframes pulseFree { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 .cross-promo-btn { flex-shrink: 0; text-decoration: none; }
 
 /* ---------- Responsive ---------- */

@@ -706,6 +706,8 @@
       const link = $('#crossPromoLink');
       link.href = promo.url || '#';
       link.textContent = promo.btnText || 'Ir';
+      const freeEl = $('#crossPromoFree');
+      if (freeEl) freeEl.hidden = !promo.free;
       promoEl.hidden = false;
     }
 

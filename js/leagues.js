@@ -66,9 +66,10 @@ window.PRODE_LEAGUES = {
     // Banner al pie invitando a otra app (dejá en null para no mostrar).
     crossPromo: {
       title: '¿YA ENTRASTE AL LIBRO DEL MUNDIAL?',
-      desc: 'Informate sobre el Mundial, aprendé y jugá.',
+      desc: 'Informate sobre el Mundial, aprendé y jugá. ¡Es totalmente gratis!',
       url: 'https://nicofm5.github.io/libro-mundial/',
       btnText: 'Ir al Libro del Mundial',
+      free: true,
     },
     lockMinutes: 60,
   },
