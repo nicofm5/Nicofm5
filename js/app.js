@@ -237,32 +237,51 @@
   }
 
   // Lee los inputs (solo partidos NO cerrados y con ambos goles cargados).
+  // Devuelve { preds, partials }:
+  //   - preds: predicciones completas (existentes + las nuevas con AMBOS goles)
+  //   - partials: partidos donde el jugador cargó UN solo gol (no se guardan)
   function collectPredictions() {
     // Partimos de las predicciones existentes para no perder partidos ya cerrados.
     const preds = { ...(state.player.predictions || {}) };
+    const partials = [];
     MATCHES.forEach((m) => {
       if (isLocked(m) || hasSavedPred(m)) return; // cerrados o ya guardados: no se tocan
       const hEl = $(`input.goal[data-match="${m.id}"][data-side="h"]`);
       const aEl = $(`input.goal[data-match="${m.id}"][data-side="a"]`);
+      if (!hEl || !aEl) return;
       const hv = hEl.value.trim(), av = aEl.value.trim();
       if (hv !== '' && av !== '') {
         preds[m.id] = { h: Math.max(0, parseInt(hv, 10)), a: Math.max(0, parseInt(av, 10)) };
       } else {
+        if (hv !== '' || av !== '') partials.push(m); // un solo gol cargado
         delete preds[m.id];
       }
     });
-    return preds;
+    return { preds, partials };
   }
 
   async function savePlays() {
     const status = $('#saveStatus');
     const existing = state.player.predictions || {};
-    const preds = collectPredictions();
+    const { preds, partials } = collectPredictions();
     // Solo los partidos NUEVOS (los ya guardados no se vuelven a tocar).
     const nuevos = Object.keys(preds).filter((id) => !existing[id]);
+
+    // Aviso: partidos con un solo gol cargado NO se guardan (hay que completar ambos).
+    if (partials.length) {
+      const lista = partials
+        .map((m) => `• ${teamName(m.home)} vs ${teamName(m.away)}`)
+        .join('\n');
+      const seguir = window.confirm(
+        `Estos partidos tienen un solo gol cargado y NO se van a guardar (faltan ambos resultados):\n\n${lista}\n\n` +
+        `${nuevos.length ? `Sí se guardarán ${nuevos.length} pronóstico(s) completo(s). ` : ''}¿Continuar igual?`
+      );
+      if (!seguir) return;
+    }
+
     if (!nuevos.length) {
       status.textContent = 'No hay pronósticos nuevos para guardar.';
-      setTimeout(() => { status.textContent = ''; }, 2500);
+      setTimeout(() => { status.textContent = ''; }, 3500);
       return;
     }
     const ok = window.confirm(
@@ -272,10 +291,31 @@
     if (!ok) return;
     status.textContent = 'Guardando...';
     try {
-      state.player = await DB.savePredictions(state.player.player_key, preds, state.player.payment_reference);
+      await DB.savePredictions(state.player.player_key, preds, state.player.payment_reference);
+
+      // Verificación: releemos del servidor para confirmar qué quedó realmente
+      // guardado. Así, si la escritura no impacta (RLS, red, etc.) el jugador ve
+      // un error claro en lugar de un falso "guardado". También deja a state.player
+      // sincronizado con la base, evitando que el ticket muestre algo distinto.
+      const fresh = await DB.getPlayer(state.player.player_key);
+      if (fresh) state.player = fresh;
+      const guardados = state.player.predictions || {};
+      const faltaron = nuevos.filter((id) => !guardados[id]);
+
       renderGroups(); // re-dibuja: los recién guardados quedan bloqueados
-      status.textContent = '✓ Pronósticos guardados y bloqueados';
-      setTimeout(() => { status.textContent = ''; }, 3000);
+
+      if (faltaron.length) {
+        const lista = faltaron
+          .map((id) => {
+            const m = MATCHES.find((x) => x.id === id);
+            return m ? `${teamName(m.home)} vs ${teamName(m.away)}` : id;
+          })
+          .join(', ');
+        status.textContent = `⚠ No se pudo guardar: ${lista}. Probá de nuevo.`;
+      } else {
+        status.textContent = '✓ Pronósticos guardados y bloqueados';
+        setTimeout(() => { status.textContent = ''; }, 3000);
+      }
     } catch (err) {
       console.error(err);
       status.textContent = 'Error al guardar: ' + (err.message || err);
@@ -721,7 +761,16 @@
     $('#loginForm').addEventListener('submit', handleLogin);
     $('#logoutBtn').addEventListener('click', logout);
     $('#saveDraftBtn').addEventListener('click', savePlays);
-    $('#ticketBtn').addEventListener('click', () => { renderTicket(); showView('ticket'); });
+    $('#ticketBtn').addEventListener('click', async () => {
+      showView('ticket');
+      // Releemos del servidor para que el ticket muestre EXACTAMENTE lo guardado
+      // (evita que aparezca desactualizado si algo cambió en otra pestaña/sesión).
+      try {
+        const fresh = await DB.getPlayer(state.player.player_key);
+        if (fresh) state.player = fresh;
+      } catch (e) { console.warn('No se pudo refrescar el ticket:', e.message); }
+      renderTicket();
+    });
     $('#printBtn').addEventListener('click', () => window.print());
     $('#backFromTicket').addEventListener('click', () => { renderGroups(); showView('fixture'); });
     $('#adminForm').addEventListener('submit', handleAdminLogin);
