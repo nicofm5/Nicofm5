@@ -810,7 +810,10 @@
     // oficial de la Copa 2026 (siempre) y el de la liga (si es distinto).
     if (cfg.LOGO) {
       const isWorldCup = cfg.LOGO === 'assets/logo26.png';
-      document.querySelectorAll('.brand-logo').forEach((img) => { img.src = cfg.LOGO; });
+      document.querySelectorAll('.brand-logo').forEach((img) => {
+        img.src = cfg.LOGO;
+        img.classList.toggle('custom-logo', !isWorldCup); // encuadre cuadrado para logos subidos
+      });
       const leagueLogo = document.querySelector('.hero-league-logo');
       if (leagueLogo && !isWorldCup) {
         leagueLogo.src = cfg.LOGO;

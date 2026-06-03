@@ -62,18 +62,6 @@
         </figure>
       </div>
 
-      <!-- Compartir esta liga: siempre visible en el inicio (solo ligas creadas) -->
-      <div class="card share-card" id="shareCard" hidden>
-        <span class="share-card-eyebrow">Estás en la liga</span>
-        <h2 class="share-card-name" id="shareCardName"></h2>
-        <p class="muted">Invitá a más gente: compartí el link y se suman a esta misma liga.</p>
-        <div class="share-link">
-          <input type="text" id="shareCardLink" readonly />
-          <button class="btn small" id="shareCardCopy">Copiar</button>
-        </div>
-        <a class="btn primary" id="shareCardWhatsapp" target="_blank" rel="noopener">📲 Compartir por WhatsApp</a>
-      </div>
-
       <div class="card login-card">
         <h2>Ingresá para jugar</h2>
         <p class="muted">Identificate con tu nombre, apellido y DNI. El DNI es tu clave para recuperar tus jugadas; en el ranking solo se ve tu nombre y apellido.</p>
@@ -115,6 +103,18 @@
           <li><strong>Ranking:</strong> los puntos se suman <strong>automáticamente</strong> a medida que se cargan los resultados oficiales. En caso de empate, desempata quien tenga más marcadores exactos.</li>
         </ol>
       </div>
+      <!-- Compartir esta liga: visible bajo "cómo se juega" (solo ligas creadas) -->
+      <div class="card share-card" id="shareCard" hidden>
+        <span class="share-card-eyebrow">📣 Invitá a tu liga</span>
+        <h2 class="share-card-name" id="shareCardName"></h2>
+        <p class="muted">Mandales este link y se suman a esta misma liga.</p>
+        <div class="share-link">
+          <input type="text" id="shareCardLink" readonly />
+          <button class="btn small" id="shareCardCopy">Copiar</button>
+        </div>
+        <a class="btn primary" id="shareCardWhatsapp" target="_blank" rel="noopener">📲 Compartir por WhatsApp</a>
+      </div>
+
       <!-- Separador claro entre "jugar acá" y "armar otro prode distinto" -->
       <div class="create-divider" id="createDivider" hidden><span>o</span></div>
       <div class="card create-cta" id="createCta" hidden>
