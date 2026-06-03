@@ -715,6 +715,7 @@
     if (m.includes('CLAVE_INVALIDA')) return 'La clave de creación no es válida.';
     if (m.includes('NOMBRE_REQUERIDO')) return 'Falta el nombre de la liga.';
     if (m.includes('ADMIN_PASS_REQUERIDO')) return 'Falta la clave de administrador.';
+    if (/bucket|storage|not found/i.test(m)) return 'No se pudo subir el logo (revisá que la imagen sea válida). Podés crear la liga sin logo y agregarlo después.';
     return 'No se pudo crear la liga: ' + (m || 'error desconocido');
   }
 
@@ -723,18 +724,30 @@
     const errEl = $('#createError'); errEl.hidden = true;
     const name = $('#clName').value.trim();
     const subtitle = $('#clSubtitle').value.trim();
-    const logo = $('#clLogo').value.trim();
+    let logo = $('#clLogo').value.trim();
     const color = $('#clColor').value;
     const adminPass = $('#clAdminPass').value.trim();
     const creationKey = $('#clCreationKey').value.trim();
+    const fileInput = $('#clLogoFile');
+    const logoFile = fileInput && fileInput.files && fileInput.files[0];
     if (!name || !adminPass || !creationKey) {
       errEl.textContent = 'Completá nombre, clave de administrador y clave de creación.';
       errEl.hidden = false; return;
     }
+    if (logoFile && logoFile.size > 3 * 1024 * 1024) {
+      errEl.textContent = 'La imagen del logo es muy pesada (máximo 3 MB).';
+      errEl.hidden = false; return;
+    }
     // Color principal opcional → sobrescribe los acentos celestes del tema.
     const colors = color ? { '--celeste': color, '--celeste-2': color } : {};
-    const btn = $('#clSubmitBtn'); btn.disabled = true; btn.textContent = 'Creando...';
+    const btn = $('#clSubmitBtn'); btn.disabled = true;
     try {
+      // Si subió una imagen, la mandamos a Storage y usamos su URL (gana sobre la URL pegada).
+      if (logoFile) {
+        btn.textContent = 'Subiendo logo...';
+        logo = await DB.uploadLogo(logoFile);
+      }
+      btn.textContent = 'Creando...';
       const row = await DB.createLeague({
         creation_key: creationKey, name, admin_pass: adminPass,
         subtitle, logo_url: logo, colors,

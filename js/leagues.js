@@ -156,3 +156,13 @@ window.PRODE_HUB = {
   url: 'https://wqxxwpzuizltvzsalxoa.supabase.co',
   anonKey: 'sb_publishable_IH70uWZpw8BHw_mse_QTZA_Ie6VjZ6t',
 };
+
+// Banner "Libro del Mundial" que se muestra al pie de CUALQUIER liga que no
+// tenga su propio crossPromo (por ejemplo, las ligas creadas por usuarios).
+window.PRODE_GLOBAL_CROSS_PROMO = {
+  title: '¿YA ENTRASTE AL LIBRO DEL MUNDIAL?',
+  desc: 'Informate sobre el Mundial, aprendé y jugá. ¡Es totalmente gratis!',
+  url: 'https://nicofm5.github.io/libro-mundial/',
+  btnText: 'Ir al Libro del Mundial',
+  free: true,
+};

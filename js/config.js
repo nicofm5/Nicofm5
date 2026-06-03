@@ -91,8 +91,8 @@
     // Tema (colores) para aplicar a las variables CSS
     THEME: L.theme || {},
 
-    // Banner de liga cruzada
-    CROSS_PROMO: L.crossPromo || null,
+    // Banner de liga cruzada (si la liga no define uno, usa el global)
+    CROSS_PROMO: L.crossPromo || window.PRODE_GLOBAL_CROSS_PROMO || null,
 
     // Premios del podio (1°, 2°, 3°)
     PRIZES: {
