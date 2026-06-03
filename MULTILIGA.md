@@ -25,19 +25,26 @@ clave de admin propia + la **clave general de creación** → recibe un **link**
 (`tusitio/?liga=ABC123`) que comparte. Quien entre con ese link juega en su liga;
 el creador administra **solo la suya** con su clave. Vos no intervenís.
 
-**Cómo activarlo (una sola vez):**
+**Dónde vive el hub:** para no pasar el límite de 2 proyectos del plan gratuito
+de Supabase, el hub **es el mismo proyecto de Vamos Argentina**. Esa liga pasó a
+ser una *fila* del hub (con un `leagueId` fijo en `leagues.js`) y comparte base
+con todas las ligas nuevas. Productos Pozo sigue como liga *standalone* aparte.
 
-1. Creá un proyecto Supabase **nuevo y compartido** (el hub) y corré
-   `db/schema-hub.sql` en su SQL Editor.
-2. Dentro de ese SQL, editá la constante `v_key` de la función `create_league`:
-   es la **clave general de creación** que vas a repartir para frenar el abuso.
-3. Pegá la **Project URL** y la **anon key** del hub en `js/leagues.js` →
-   `window.PRODE_HUB`.
-4. **Robot de resultados del hub:** en GitHub → Settings → Secrets and variables
-   → Actions, agregá `SUPABASE_URL_HUB` y `SUPABASE_ANON_KEY_HUB` (los del hub).
-   El workflow `.github/workflows/sync-hub.yml` ya recorre **todas** las ligas
-   del hub cada hora: cuando alguien crea una liga nueva, queda cubierta sola.
-5. Deploy. Listo: aparece el botón "Crear mi liga".
+**Cómo se activó (una sola vez):**
+
+1. En el SQL Editor del proyecto de **Vamos Argentina**, correr
+   `db/migration-vamos-to-hub.sql` (PASO 1 borra las tablas viejas vacías),
+   luego `db/schema-hub.sql` (PASO 2 — ¡editar antes la constante `v_key`, que
+   es la **clave general de creación**!), y luego el PASO 3 de la migración
+   (crea la fila de Vamos Argentina con su id fijo).
+2. `js/leagues.js` ya tiene `window.PRODE_HUB` con las credenciales de ese
+   proyecto y el campo `leagueId` en la liga `vamos-argentina`.
+3. **Robot de resultados del hub:** en GitHub → Settings → Secrets and variables
+   → Actions, agregar `SUPABASE_URL_HUB` y `SUPABASE_ANON_KEY_HUB` (con los
+   MISMOS valores que `SUPABASE_URL` / `SUPABASE_ANON_KEY` de Vamos Argentina).
+   `.github/workflows/sync-hub.yml` recorre **todas** las ligas del hub cada
+   hora (incluida Vamos Argentina), así que el workflow viejo
+   `sync-results.yml` se eliminó.
 
 Mientras `PRODE_HUB` esté vacío, la creación queda desactivada y las ligas
 fijas siguen funcionando igual (convivencia total).

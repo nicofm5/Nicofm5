@@ -30,6 +30,9 @@ window.PRODE_LEAGUES = {
   // ===========================================================================
   'vamos-argentina': {
     key: 'vamos-argentina',
+    // Esta liga ahora vive en el HUB (su mismo Supabase es la base compartida).
+    // El leagueId apunta a la fila creada por db/migration-vamos-to-hub.sql.
+    leagueId: '11111111-1111-1111-1111-111111111111',
     hostnames: [
       'prode-mundial-2026-vamos-argentina.vercel.app',
     ],
@@ -146,7 +149,10 @@ window.PRODE_DEFAULT_LEAGUE = 'vamos-argentina';
  * Mientras url/anonKey estén vacíos, la creación de ligas queda DESACTIVADA
  * (el botón "Crear mi liga" no aparece) y las ligas fijas siguen funcionando.
  */
+// El hub es el MISMO proyecto Supabase de Vamos Argentina (lo convertimos con
+// db/migration-vamos-to-hub.sql). Por eso estas credenciales coinciden con las
+// de esa liga: todas las ligas nuevas viven en esa base compartida.
 window.PRODE_HUB = {
-  url: '',      // ej: 'https://xxxxxxxx.supabase.co'
-  anonKey: '',  // ej: 'sb_publishable_...' o 'eyJhbGciOi...'
+  url: 'https://wqxxwpzuizltvzsalxoa.supabase.co',
+  anonKey: 'sb_publishable_IH70uWZpw8BHw_mse_QTZA_Ie6VjZ6t',
 };

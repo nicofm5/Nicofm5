@@ -476,10 +476,10 @@
     panel.innerHTML = '<p class="muted">Cargando partidos...</p>';
     state.results = await DB.getResults();
     const groupLetters = Object.keys(GROUPS);
-    // La sincronización automática corre por cron para todas las ligas. En las
-    // ligas fijas se ofrece además un botón de sync manual (apunta a su backend);
-    // en las de usuario, el cron del hub ya las cubre cada hora.
-    const syncBar = cfg.IS_USER_LEAGUE ? `
+    // El botón de sync manual (/api/sync-results) solo aplica a ligas STANDALONE
+    // (sin league_id, su propio Supabase). Las ligas alojadas en el hub —las de
+    // usuario y Vamos Argentina— se sincronizan por el cron del hub cada hora.
+    const syncBar = cfg.LEAGUE_ID ? `
       <div class="sync-bar">
         <span class="muted small-note">Los resultados se actualizan automáticamente cada hora. También podés cargarlos a mano acá.</span>
       </div>` : `

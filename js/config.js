@@ -62,7 +62,9 @@
 
     // Liga de usuario (hub): el branding/admin se completa tras resolver el código.
     IS_USER_LEAGUE: isUserLeague,
-    LEAGUE_ID: null,
+    // league_id para scopear los datos. En ligas de usuario se resuelve luego;
+    // en ligas fijas alojadas en el hub viene de leagues.js (campo leagueId).
+    LEAGUE_ID: isUserLeague ? null : (L.leagueId || null),
     HUB_READY: HUB_READY,
 
     // Supabase (para liga de usuario apunta al hub compartido)
