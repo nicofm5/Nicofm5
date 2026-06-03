@@ -715,6 +715,7 @@
     if (m.includes('CLAVE_INVALIDA')) return 'La clave de creación no es válida.';
     if (m.includes('NOMBRE_REQUERIDO')) return 'Falta el nombre de la liga.';
     if (m.includes('ADMIN_PASS_REQUERIDO')) return 'Falta la clave de administrador.';
+    if (/bucket|storage|not found/i.test(m)) return 'No se pudo subir el logo (revisá que la imagen sea válida). Podés crear la liga sin logo y agregarlo después.';
     return 'No se pudo crear la liga: ' + (m || 'error desconocido');
   }
 
@@ -723,18 +724,30 @@
     const errEl = $('#createError'); errEl.hidden = true;
     const name = $('#clName').value.trim();
     const subtitle = $('#clSubtitle').value.trim();
-    const logo = $('#clLogo').value.trim();
+    let logo = $('#clLogo').value.trim();
     const color = $('#clColor').value;
     const adminPass = $('#clAdminPass').value.trim();
     const creationKey = $('#clCreationKey').value.trim();
+    const fileInput = $('#clLogoFile');
+    const logoFile = fileInput && fileInput.files && fileInput.files[0];
     if (!name || !adminPass || !creationKey) {
       errEl.textContent = 'Completá nombre, clave de administrador y clave de creación.';
       errEl.hidden = false; return;
     }
+    if (logoFile && logoFile.size > 3 * 1024 * 1024) {
+      errEl.textContent = 'La imagen del logo es muy pesada (máximo 3 MB).';
+      errEl.hidden = false; return;
+    }
     // Color principal opcional → sobrescribe los acentos celestes del tema.
     const colors = color ? { '--celeste': color, '--celeste-2': color } : {};
-    const btn = $('#clSubmitBtn'); btn.disabled = true; btn.textContent = 'Creando...';
+    const btn = $('#clSubmitBtn'); btn.disabled = true;
     try {
+      // Si subió una imagen, la mandamos a Storage y usamos su URL (gana sobre la URL pegada).
+      if (logoFile) {
+        btn.textContent = 'Subiendo logo...';
+        logo = await DB.uploadLogo(logoFile);
+      }
+      btn.textContent = 'Creando...';
       const row = await DB.createLeague({
         creation_key: creationKey, name, admin_pass: adminPass,
         subtitle, logo_url: logo, colors,
@@ -750,28 +763,35 @@
     }
   }
 
+  // Mensaje de invitación para compartir por WhatsApp.
+  function inviteMessage(name, link) {
+    return `Te invito a mi prode del Mundial 2026 "${name}". Entrá y jugá: ${link}`;
+  }
+
   function showCreatedLeague(code) {
     const link = leagueLink(code);
+    const name = $('#clName').value.trim();
     $('#createForm').hidden = true;
     $('#createdCard').hidden = false;
     $('#createError').hidden = true;
+    $('#createdName').textContent = name;
     $('#createdLink').value = link;
     $('#createdCode').textContent = code;
-    const msg = `Te invito a mi prode del Mundial 2026 "${$('#clName').value.trim()}". Entrá y jugá: ${link}`;
-    $('#whatsappShare').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    $('#whatsappShare').href = 'https://wa.me/?text=' + encodeURIComponent(inviteMessage(name, link));
     $('#enterLeagueBtn').onclick = () => { window.location.href = link; };
   }
 
-  function copyCreatedLink() {
-    const inp = $('#createdLink');
-    inp.select();
-    inp.setSelectionRange(0, 99999);
+  // Copia el contenido de un input y da feedback "¡Copiado!" en su botón.
+  function copyFromInput(inputEl, btnEl) {
+    if (!inputEl || !btnEl) return;
+    inputEl.select();
+    inputEl.setSelectionRange(0, 99999);
     const done = () => {
-      const b = $('#copyLinkBtn'); const t = b.textContent;
-      b.textContent = '¡Copiado!'; setTimeout(() => { b.textContent = t; }, 1500);
+      const t = btnEl.textContent;
+      btnEl.textContent = '¡Copiado!'; setTimeout(() => { btnEl.textContent = t; }, 1500);
     };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(inp.value).then(done).catch(() => { try { document.execCommand('copy'); done(); } catch (e) {} });
+      navigator.clipboard.writeText(inputEl.value).then(done).catch(() => { try { document.execCommand('copy'); done(); } catch (e) {} });
     } else { try { document.execCommand('copy'); done(); } catch (e) {} }
   }
 
@@ -790,11 +810,19 @@
     // oficial de la Copa 2026 (siempre) y el de la liga (si es distinto).
     if (cfg.LOGO) {
       const isWorldCup = cfg.LOGO === 'assets/logo26.png';
-      document.querySelectorAll('.brand-logo').forEach((img) => { img.src = cfg.LOGO; });
+      // El encuadre cuadrado (badge) es solo para logos SUBIDOS por usuarios
+      // (fotos de cualquier proporción). Los logos fijos (Pozo, etc.) se muestran
+      // enteros, sin recortar ni deformar.
+      const useBadge = !!cfg.IS_USER_LEAGUE && !isWorldCup;
+      document.querySelectorAll('.brand-logo').forEach((img) => {
+        img.src = cfg.LOGO;
+        img.classList.toggle('badge', useBadge);
+      });
       const leagueLogo = document.querySelector('.hero-league-logo');
       if (leagueLogo && !isWorldCup) {
         leagueLogo.src = cfg.LOGO;
         leagueLogo.alt = cfg.APP_TITLE || '';
+        leagueLogo.classList.toggle('badge', useBadge);
         leagueLogo.hidden = false;
       }
     }
@@ -832,8 +860,23 @@
       : '🟡 Modo demo (sin backend): los datos quedan solo en este navegador. Configurá Supabase en js/config.js para jugar entre varios.';
 
     // "Crear mi liga": solo si el hub de ligas self-service está configurado.
+    const hubReady = DB.hubReady && DB.hubReady();
     const createCta = $('#createCta');
-    if (createCta && DB.hubReady && DB.hubReady()) createCta.hidden = false;
+    if (createCta && hubReady) createCta.hidden = false;
+    const createDivider = $('#createDivider');
+    if (createDivider && hubReady) createDivider.hidden = false;
+
+    // Panel "Compartir esta liga": siempre visible en el inicio de las ligas
+    // creadas por usuarios (así el link no desaparece tras crearla).
+    const shareCard = $('#shareCard');
+    if (shareCard && cfg.IS_USER_LEAGUE && cfg.LEAGUE_KEY) {
+      const link = leagueLink(cfg.LEAGUE_KEY);
+      $('#shareCardName').textContent = cfg.APP_TITLE || 'Tu liga';
+      $('#shareCardLink').value = link;
+      $('#shareCardWhatsapp').href = 'https://wa.me/?text=' +
+        encodeURIComponent(inviteMessage(cfg.APP_TITLE || '', link));
+      shareCard.hidden = false;
+    }
   }
 
   function bindEvents() {
@@ -849,7 +892,8 @@
     const goCreate = $('#goCreateBtn'); if (goCreate) goCreate.addEventListener('click', showCreateView);
     const clCancel = $('#clCancelBtn'); if (clCancel) clCancel.addEventListener('click', () => showView('welcome'));
     const createForm = $('#createForm'); if (createForm) createForm.addEventListener('submit', handleCreateLeague);
-    const copyBtn = $('#copyLinkBtn'); if (copyBtn) copyBtn.addEventListener('click', copyCreatedLink);
+    const copyBtn = $('#copyLinkBtn'); if (copyBtn) copyBtn.addEventListener('click', () => copyFromInput($('#createdLink'), copyBtn));
+    const shareCopy = $('#shareCardCopy'); if (shareCopy) shareCopy.addEventListener('click', () => copyFromInput($('#shareCardLink'), shareCopy));
 
     $$('.nav-btn[data-view]').forEach((btn) => {
       btn.addEventListener('click', () => {

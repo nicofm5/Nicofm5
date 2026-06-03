@@ -103,10 +103,24 @@
           <li><strong>Ranking:</strong> los puntos se suman <strong>automáticamente</strong> a medida que se cargan los resultados oficiales. En caso de empate, desempata quien tenga más marcadores exactos.</li>
         </ol>
       </div>
+      <!-- Compartir esta liga: visible bajo "cómo se juega" (solo ligas creadas) -->
+      <div class="card share-card" id="shareCard" hidden>
+        <span class="share-card-eyebrow">📣 Invitá a tu liga</span>
+        <h2 class="share-card-name" id="shareCardName"></h2>
+        <p class="muted">Mandales este link y se suman a esta misma liga.</p>
+        <div class="share-link">
+          <input type="text" id="shareCardLink" readonly />
+          <button class="btn small" id="shareCardCopy">Copiar</button>
+        </div>
+        <a class="btn primary" id="shareCardWhatsapp" target="_blank" rel="noopener">📲 Compartir por WhatsApp</a>
+      </div>
+
+      <!-- Separador claro entre "jugar acá" y "armar otro prode distinto" -->
+      <div class="create-divider" id="createDivider" hidden><span>o</span></div>
       <div class="card create-cta" id="createCta" hidden>
-        <h2>🏆 ¿Querés tu propia liga?</h2>
-        <p class="muted">Armá un prode para tu grupo de amigos, tu trabajo o tu familia en segundos. Vos sos el administrador y compartís el link.</p>
-        <button class="btn primary" id="goCreateBtn">Crear mi liga</button>
+        <h2>🏆 Armá tu propio prode</h2>
+        <p class="muted">¿Querés un prode aparte para tu grupo de amigos, tu trabajo o tu familia? Creá una liga nueva en segundos: vos sos el administrador y compartís tu propio link.</p>
+        <button class="btn primary" id="goCreateBtn">Crear una liga nueva</button>
       </div>
       <p class="backend-note" id="backendNote"></p>
     </section>
@@ -123,7 +137,10 @@
           <label>Subtítulo <span class="muted">(opcional)</span>
             <input type="text" id="clSubtitle" maxlength="80" placeholder="Ej: Fase de grupos · Oficina 2026" />
           </label>
-          <label>Logo por URL <span class="muted">(opcional)</span>
+          <label>Subí tu logo <span class="muted">(opcional · jpg, png o webp · ideal cuadrado)</span>
+            <input type="file" id="clLogoFile" accept="image/png,image/jpeg,image/webp,image/gif" />
+          </label>
+          <label>…o pegá el logo por URL <span class="muted">(opcional)</span>
             <input type="url" id="clLogo" placeholder="https://.../mi-logo.png" />
           </label>
           <label>Color principal <span class="muted">(opcional)</span>
@@ -144,6 +161,7 @@
 
       <div class="card created-card" id="createdCard" hidden>
         <h2>✅ ¡Tu liga está lista!</h2>
+        <p class="created-name" id="createdName"></p>
         <p class="muted">Compartí este link con quienes quieras invitar. Entran, cargan su nombre y juegan.</p>
         <div class="share-link">
           <input type="text" id="createdLink" readonly />

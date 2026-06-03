@@ -219,6 +219,20 @@
     return data || null;
   }
 
+  // Subir el logo de una liga a Supabase Storage (bucket público 'league-logos')
+  // y devolver su URL pública. Se usa cuando el usuario sube una imagen en vez
+  // de pegar una URL.
+  async function uploadLogo(file) {
+    if (!hubClient) throw new Error('La subida de logos no está configurada.');
+    const ext = (file.name && file.name.includes('.')) ? file.name.split('.').pop().toLowerCase() : 'png';
+    const path = `logos/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await hubClient.storage.from('league-logos')
+      .upload(path, file, { upsert: false, contentType: file.type || 'image/png' });
+    if (error) throw error;
+    const { data } = hubClient.storage.from('league-logos').getPublicUrl(path);
+    return data.publicUrl;
+  }
+
   // Crear una liga nueva (valida la clave general del lado servidor en la RPC).
   // payload: { creation_key, name, admin_pass, subtitle, logo_url, colors, entry, prizes }
   async function createLeague(payload) {
@@ -244,6 +258,6 @@
     getAllPlayers, getResults, saveResult, setPaymentValidated,
     deletePlayer, resetDni,
     // Hub de ligas self-service
-    hubReady, resolveLeague, createLeague, setLeagueId,
+    hubReady, resolveLeague, createLeague, setLeagueId, uploadLogo,
   };
 })();
