@@ -810,14 +810,19 @@
     // oficial de la Copa 2026 (siempre) y el de la liga (si es distinto).
     if (cfg.LOGO) {
       const isWorldCup = cfg.LOGO === 'assets/logo26.png';
+      // El encuadre cuadrado (badge) es solo para logos SUBIDOS por usuarios
+      // (fotos de cualquier proporción). Los logos fijos (Pozo, etc.) se muestran
+      // enteros, sin recortar ni deformar.
+      const useBadge = !!cfg.IS_USER_LEAGUE && !isWorldCup;
       document.querySelectorAll('.brand-logo').forEach((img) => {
         img.src = cfg.LOGO;
-        img.classList.toggle('custom-logo', !isWorldCup); // encuadre cuadrado para logos subidos
+        img.classList.toggle('badge', useBadge);
       });
       const leagueLogo = document.querySelector('.hero-league-logo');
       if (leagueLogo && !isWorldCup) {
         leagueLogo.src = cfg.LOGO;
         leagueLogo.alt = cfg.APP_TITLE || '';
+        leagueLogo.classList.toggle('badge', useBadge);
         leagueLogo.hidden = false;
       }
     }

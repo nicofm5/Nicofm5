@@ -63,7 +63,8 @@ h1, h2, h3, .display { font-family: 'Anton', 'Inter', sans-serif; font-weight: 4
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-mark { display: inline-flex; }
 .brand-logo { height: 46px; width: auto; display: block; filter: drop-shadow(0 3px 8px rgba(0,0,0,.5)); }
-.brand-logo.custom-logo {
+/* Solo para logos SUBIDOS por usuarios: encuadre cuadrado prolijo. */
+.brand-logo.badge {
   height: 42px; width: 42px; object-fit: cover; border-radius: 11px;
   border: 2px solid rgba(255,255,255,.7); background: #fff; filter: none;
 }
@@ -128,14 +129,18 @@ h1, h2, h3, .display { font-family: 'Anton', 'Inter', sans-serif; font-weight: 4
   animation: pop .5s ease both;
 }
 .hero-logos .hero-logo { margin: 0; }
-/* Logo subido por el usuario: lo encuadramos como "badge" cuadrado y prolijo,
-   sin importar si la imagen original es vertical, horizontal o cuadrada. */
+/* Logo de liga fija (Pozo, etc.): se muestra entero, sin recortar ni deformar. */
 .hero-league-logo {
-  width: clamp(96px, 18vw, 128px); height: clamp(96px, 18vw, 128px);
-  display: block; object-fit: cover; background: #fff;
-  border-radius: 22px; border: 3px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
+  width: clamp(120px, 24vw, 190px); height: auto; display: block;
+  filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55));
   animation: pop .5s ease both;
+}
+/* Logo SUBIDO por el usuario: encuadre cuadrado prolijo (cualquier proporción). */
+.hero-league-logo.badge {
+  width: clamp(96px, 18vw, 128px); height: clamp(96px, 18vw, 128px);
+  object-fit: cover; background: #fff;
+  border-radius: 22px; border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55); filter: none;
 }
 @keyframes pop { from { opacity: 0; transform: scale(.86); } to { opacity: 1; transform: none; } }
 
