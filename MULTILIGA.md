@@ -33,15 +33,20 @@ el creador administra **solo la suya** con su clave. Vos no intervenís.
    es la **clave general de creación** que vas a repartir para frenar el abuso.
 3. Pegá la **Project URL** y la **anon key** del hub en `js/leagues.js` →
    `window.PRODE_HUB`.
-4. Deploy. Listo: aparece el botón "Crear mi liga".
+4. **Robot de resultados del hub:** en GitHub → Settings → Secrets and variables
+   → Actions, agregá `SUPABASE_URL_HUB` y `SUPABASE_ANON_KEY_HUB` (los del hub).
+   El workflow `.github/workflows/sync-hub.yml` ya recorre **todas** las ligas
+   del hub cada hora: cuando alguien crea una liga nueva, queda cubierta sola.
+5. Deploy. Listo: aparece el botón "Crear mi liga".
 
 Mientras `PRODE_HUB` esté vacío, la creación queda desactivada y las ligas
 fijas siguen funcionando igual (convivencia total).
 
-> **Pendiente (a futuro):** el robot de resultados automático todavía corre solo
-> para las ligas fijas. En las ligas de usuario los resultados se cargan a mano
-> desde el panel admin. Para automatizarlo habría que hacer un workflow que
-> recorra todas las ligas del hub.
+> **Robot de resultados:** una sola corrida (`scripts/sync-results-hub.mjs`)
+> consulta football-data.org y upsertea los resultados en cada liga del hub con
+> su `league_id`. Las ligas fijas siguen con su propio workflow
+> (`scripts/sync-results.mjs`). La lógica de mapeo de equipos es compartida
+> (`scripts/wc-results.mjs`).
 
 ---
 

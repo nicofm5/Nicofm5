@@ -476,9 +476,13 @@
     panel.innerHTML = '<p class="muted">Cargando partidos...</p>';
     state.results = await DB.getResults();
     const groupLetters = Object.keys(GROUPS);
-    // La sincronización automática desde la API apunta al backend de las ligas
-    // fijas; en una liga de usuario los resultados se cargan a mano (por ahora).
-    const syncBar = cfg.IS_USER_LEAGUE ? '' : `
+    // La sincronización automática corre por cron para todas las ligas. En las
+    // ligas fijas se ofrece además un botón de sync manual (apunta a su backend);
+    // en las de usuario, el cron del hub ya las cubre cada hora.
+    const syncBar = cfg.IS_USER_LEAGUE ? `
+      <div class="sync-bar">
+        <span class="muted small-note">Los resultados se actualizan automáticamente cada hora. También podés cargarlos a mano acá.</span>
+      </div>` : `
       <div class="sync-bar">
         <button class="btn small" id="syncApiBtn">Sincronizar desde API</button>
         <span id="syncApiStatus" class="muted"></span>
