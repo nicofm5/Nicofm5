@@ -34,6 +34,7 @@ window.PRODE_LEAGUES = {
     // El leagueId apunta a la fila creada por db/migration-vamos-to-hub.sql.
     leagueId: '11111111-1111-1111-1111-111111111111',
     hostnames: [
+      'prodemundial.vercel.app',
       'prode-mundial-2026-vamos-argentina.vercel.app',
     ],
     branding: {
