@@ -383,8 +383,36 @@ table.ranking tr.top.me { background: #eef6ff; }
 .cross-promo-btn { flex-shrink: 0; text-decoration: none; }
 
 /* ---------- Crear liga (self-service) ---------- */
-.create-cta { text-align: center; }
+/* Panel "Compartir esta liga" (siempre visible en ligas creadas) */
+.share-card { text-align: center; border: 1px solid var(--gold, #e7b94e); }
+.share-card-eyebrow {
+  display: inline-block; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px; color: #8b96ad;
+}
+.share-card-name { font-size: 30px; line-height: 1.1; margin: 6px 0 4px; }
+.share-card .share-link { margin: 14px 0 10px; }
+.share-card .btn.primary { width: 100%; text-decoration: none; }
+
+/* Separador "o" entre jugar acá y crear una liga nueva */
+.create-divider {
+  display: flex; align-items: center; gap: 14px;
+  margin: 28px 4px 16px; color: #8b96ad;
+}
+.create-divider::before, .create-divider::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.14);
+}
+.create-divider span {
+  font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* La tarjeta de crear se ve "aparte" (borde punteado, fondo tenue) */
+.create-cta {
+  text-align: center;
+  border: 1px dashed rgba(255,255,255,.25);
+  background: rgba(255,255,255,.03);
+}
 .create-cta h2 { margin-top: 0; }
+.created-name { font-size: 26px; font-weight: 800; margin: 4px 0 10px; }
 hr.soft { border: none; border-top: 1px solid rgba(255,255,255,.12); margin: 18px 0; }
 #clColor { width: 64px; height: 40px; padding: 2px; cursor: pointer; }
 .share-link { display: flex; gap: 8px; margin: 10px 0; }

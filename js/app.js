@@ -750,28 +750,35 @@
     }
   }
 
+  // Mensaje de invitación para compartir por WhatsApp.
+  function inviteMessage(name, link) {
+    return `Te invito a mi prode del Mundial 2026 "${name}". Entrá y jugá: ${link}`;
+  }
+
   function showCreatedLeague(code) {
     const link = leagueLink(code);
+    const name = $('#clName').value.trim();
     $('#createForm').hidden = true;
     $('#createdCard').hidden = false;
     $('#createError').hidden = true;
+    $('#createdName').textContent = name;
     $('#createdLink').value = link;
     $('#createdCode').textContent = code;
-    const msg = `Te invito a mi prode del Mundial 2026 "${$('#clName').value.trim()}". Entrá y jugá: ${link}`;
-    $('#whatsappShare').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    $('#whatsappShare').href = 'https://wa.me/?text=' + encodeURIComponent(inviteMessage(name, link));
     $('#enterLeagueBtn').onclick = () => { window.location.href = link; };
   }
 
-  function copyCreatedLink() {
-    const inp = $('#createdLink');
-    inp.select();
-    inp.setSelectionRange(0, 99999);
+  // Copia el contenido de un input y da feedback "¡Copiado!" en su botón.
+  function copyFromInput(inputEl, btnEl) {
+    if (!inputEl || !btnEl) return;
+    inputEl.select();
+    inputEl.setSelectionRange(0, 99999);
     const done = () => {
-      const b = $('#copyLinkBtn'); const t = b.textContent;
-      b.textContent = '¡Copiado!'; setTimeout(() => { b.textContent = t; }, 1500);
+      const t = btnEl.textContent;
+      btnEl.textContent = '¡Copiado!'; setTimeout(() => { btnEl.textContent = t; }, 1500);
     };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(inp.value).then(done).catch(() => { try { document.execCommand('copy'); done(); } catch (e) {} });
+      navigator.clipboard.writeText(inputEl.value).then(done).catch(() => { try { document.execCommand('copy'); done(); } catch (e) {} });
     } else { try { document.execCommand('copy'); done(); } catch (e) {} }
   }
 
@@ -832,8 +839,23 @@
       : '🟡 Modo demo (sin backend): los datos quedan solo en este navegador. Configurá Supabase en js/config.js para jugar entre varios.';
 
     // "Crear mi liga": solo si el hub de ligas self-service está configurado.
+    const hubReady = DB.hubReady && DB.hubReady();
     const createCta = $('#createCta');
-    if (createCta && DB.hubReady && DB.hubReady()) createCta.hidden = false;
+    if (createCta && hubReady) createCta.hidden = false;
+    const createDivider = $('#createDivider');
+    if (createDivider && hubReady) createDivider.hidden = false;
+
+    // Panel "Compartir esta liga": siempre visible en el inicio de las ligas
+    // creadas por usuarios (así el link no desaparece tras crearla).
+    const shareCard = $('#shareCard');
+    if (shareCard && cfg.IS_USER_LEAGUE && cfg.LEAGUE_KEY) {
+      const link = leagueLink(cfg.LEAGUE_KEY);
+      $('#shareCardName').textContent = cfg.APP_TITLE || 'Tu liga';
+      $('#shareCardLink').value = link;
+      $('#shareCardWhatsapp').href = 'https://wa.me/?text=' +
+        encodeURIComponent(inviteMessage(cfg.APP_TITLE || '', link));
+      shareCard.hidden = false;
+    }
   }
 
   function bindEvents() {
@@ -849,7 +871,8 @@
     const goCreate = $('#goCreateBtn'); if (goCreate) goCreate.addEventListener('click', showCreateView);
     const clCancel = $('#clCancelBtn'); if (clCancel) clCancel.addEventListener('click', () => showView('welcome'));
     const createForm = $('#createForm'); if (createForm) createForm.addEventListener('submit', handleCreateLeague);
-    const copyBtn = $('#copyLinkBtn'); if (copyBtn) copyBtn.addEventListener('click', copyCreatedLink);
+    const copyBtn = $('#copyLinkBtn'); if (copyBtn) copyBtn.addEventListener('click', () => copyFromInput($('#createdLink'), copyBtn));
+    const shareCopy = $('#shareCardCopy'); if (shareCopy) shareCopy.addEventListener('click', () => copyFromInput($('#shareCardLink'), shareCopy));
 
     $$('.nav-btn[data-view]').forEach((btn) => {
       btn.addEventListener('click', () => {
