@@ -691,8 +691,9 @@
     DB.setLeagueId(row.id);
   }
 
+  // Link corto de la liga: dominio.app/CODIGO
   function leagueLink(code) {
-    return window.location.origin + window.location.pathname + '?liga=' + encodeURIComponent(code);
+    return window.location.origin + '/' + encodeURIComponent(code);
   }
 
   function showCreateView() {

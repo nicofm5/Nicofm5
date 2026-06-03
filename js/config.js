@@ -20,12 +20,28 @@
   const HUB = window.PRODE_HUB || {};
   const HUB_READY = !!(HUB.url && HUB.anonKey);
 
-  // Devuelve el valor pedido explícitamente (?liga=... o el recordado), o null.
+  // Código de liga tomado del PATH (link corto): dominio.app/CODIGO
+  // Solo un segmento "limpio" (sin barras internas ni punto de archivo).
+  function getPathCode() {
+    const seg = (window.location.pathname || '/').replace(/^\/+|\/+$/g, '');
+    if (!seg || seg.indexOf('/') !== -1 || seg.indexOf('.') !== -1) return null;
+    return decodeURIComponent(seg);
+  }
+
+  // Devuelve el valor pedido explícitamente (?liga=..., el path corto, o el
+  // recordado en este navegador), o null.
   function getOverride() {
     try {
       const qs = new URLSearchParams(window.location.search);
       const q = qs.get('liga');
       if (q) { localStorage.setItem('prode_liga_override', q); return q; }
+    } catch (e) { /* sin querystring: seguimos */ }
+    const pathCode = getPathCode();
+    if (pathCode) {
+      try { localStorage.setItem('prode_liga_override', pathCode); } catch (e) {}
+      return pathCode;
+    }
+    try {
       const saved = localStorage.getItem('prode_liga_override');
       if (saved) return saved;
     } catch (e) { /* sin localStorage: seguimos */ }
