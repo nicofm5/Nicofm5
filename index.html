@@ -103,7 +103,58 @@
           <li><strong>Ranking:</strong> los puntos se suman <strong>automáticamente</strong> a medida que se cargan los resultados oficiales. En caso de empate, desempata quien tenga más marcadores exactos.</li>
         </ol>
       </div>
+      <div class="card create-cta" id="createCta" hidden>
+        <h2>🏆 ¿Querés tu propia liga?</h2>
+        <p class="muted">Armá un prode para tu grupo de amigos, tu trabajo o tu familia en segundos. Vos sos el administrador y compartís el link.</p>
+        <button class="btn primary" id="goCreateBtn">Crear mi liga</button>
+      </div>
       <p class="backend-note" id="backendNote"></p>
+    </section>
+
+    <!-- ===================== Crear liga ===================== -->
+    <section id="view-create" class="view" hidden>
+      <div class="card login-card">
+        <h2>Crear mi liga</h2>
+        <p class="muted" id="createIntro">Completá los datos. Al crearla obtenés un <strong>link único</strong> para compartir: cualquiera que entre con ese link juega en tu liga.</p>
+        <form id="createForm" class="form">
+          <label>Nombre de la liga *
+            <input type="text" id="clName" maxlength="60" required placeholder="Ej: Prode del Trabajo" />
+          </label>
+          <label>Subtítulo <span class="muted">(opcional)</span>
+            <input type="text" id="clSubtitle" maxlength="80" placeholder="Ej: Fase de grupos · Oficina 2026" />
+          </label>
+          <label>Logo por URL <span class="muted">(opcional)</span>
+            <input type="url" id="clLogo" placeholder="https://.../mi-logo.png" />
+          </label>
+          <label>Color principal <span class="muted">(opcional)</span>
+            <input type="color" id="clColor" value="#3f86c9" />
+          </label>
+          <hr class="soft" />
+          <label>Clave de administrador de tu liga *
+            <input type="text" id="clAdminPass" required placeholder="La usarás para cargar resultados" />
+          </label>
+          <label>Clave de creación *
+            <input type="text" id="clCreationKey" required placeholder="La clave que te pasaron para poder crear ligas" />
+          </label>
+          <button type="submit" class="btn primary" id="clSubmitBtn">Crear liga</button>
+          <button type="button" class="btn ghost" id="clCancelBtn">Volver</button>
+          <p class="error" id="createError" hidden></p>
+        </form>
+      </div>
+
+      <div class="card created-card" id="createdCard" hidden>
+        <h2>✅ ¡Tu liga está lista!</h2>
+        <p class="muted">Compartí este link con quienes quieras invitar. Entran, cargan su nombre y juegan.</p>
+        <div class="share-link">
+          <input type="text" id="createdLink" readonly />
+          <button class="btn small" id="copyLinkBtn">Copiar</button>
+        </div>
+        <p class="muted">Código de tu liga: <strong id="createdCode"></strong></p>
+        <div class="created-actions">
+          <a class="btn primary" id="whatsappShare" target="_blank" rel="noopener">Compartir por WhatsApp</a>
+          <button class="btn ghost" id="enterLeagueBtn">Entrar a mi liga</button>
+        </div>
+      </div>
     </section>
 
     <!-- ===================== Editor de fixture ===================== -->

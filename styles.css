@@ -382,6 +382,19 @@ table.ranking tr.top.me { background: #eef6ff; }
 @keyframes pulseFree { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 .cross-promo-btn { flex-shrink: 0; text-decoration: none; }
 
+/* ---------- Crear liga (self-service) ---------- */
+.create-cta { text-align: center; }
+.create-cta h2 { margin-top: 0; }
+hr.soft { border: none; border-top: 1px solid rgba(255,255,255,.12); margin: 18px 0; }
+#clColor { width: 64px; height: 40px; padding: 2px; cursor: pointer; }
+.share-link { display: flex; gap: 8px; margin: 10px 0; }
+.share-link input {
+  flex: 1; min-width: 0; font-family: monospace; font-size: 13px;
+}
+.created-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.created-actions .btn { flex: 1; min-width: 160px; text-align: center; text-decoration: none; }
+.created-card h2 { margin-top: 0; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 560px) {
   .row { grid-template-columns: 1fr; }

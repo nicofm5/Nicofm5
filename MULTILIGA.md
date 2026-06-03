@@ -14,6 +14,49 @@ el cambio aplica a **todas** las ligas automáticamente.
 
 ---
 
+## Ligas self-service (las crea cada usuario, sin que vos intervengas)
+
+Además de las ligas "fijas" de `leagues.js` (cada una con su Supabase/Vercel),
+ahora cualquiera puede **crear su propia liga** desde la app. Todas esas ligas
+viven en **un solo Supabase compartido** (el "hub"), cada una como una **fila**.
+
+**Flujo para el usuario:** entra → botón **"Crear mi liga"** → pone nombre y una
+clave de admin propia + la **clave general de creación** → recibe un **link**
+(`tusitio/?liga=ABC123`) que comparte. Quien entre con ese link juega en su liga;
+el creador administra **solo la suya** con su clave. Vos no intervenís.
+
+**Dónde vive el hub:** para no pasar el límite de 2 proyectos del plan gratuito
+de Supabase, el hub **es el mismo proyecto de Vamos Argentina**. Esa liga pasó a
+ser una *fila* del hub (con un `leagueId` fijo en `leagues.js`) y comparte base
+con todas las ligas nuevas. Productos Pozo sigue como liga *standalone* aparte.
+
+**Cómo se activó (una sola vez):**
+
+1. En el SQL Editor del proyecto de **Vamos Argentina**, correr
+   `db/migration-vamos-to-hub.sql` (PASO 1 borra las tablas viejas vacías),
+   luego `db/schema-hub.sql` (PASO 2 — ¡editar antes la constante `v_key`, que
+   es la **clave general de creación**!), y luego el PASO 3 de la migración
+   (crea la fila de Vamos Argentina con su id fijo).
+2. `js/leagues.js` ya tiene `window.PRODE_HUB` con las credenciales de ese
+   proyecto y el campo `leagueId` en la liga `vamos-argentina`.
+3. **Robot de resultados del hub:** en GitHub → Settings → Secrets and variables
+   → Actions, agregar `SUPABASE_URL_HUB` y `SUPABASE_ANON_KEY_HUB` (con los
+   MISMOS valores que `SUPABASE_URL` / `SUPABASE_ANON_KEY` de Vamos Argentina).
+   `.github/workflows/sync-hub.yml` recorre **todas** las ligas del hub cada
+   hora (incluida Vamos Argentina), así que el workflow viejo
+   `sync-results.yml` se eliminó.
+
+Mientras `PRODE_HUB` esté vacío, la creación queda desactivada y las ligas
+fijas siguen funcionando igual (convivencia total).
+
+> **Robot de resultados:** una sola corrida (`scripts/sync-results-hub.mjs`)
+> consulta football-data.org y upsertea los resultados en cada liga del hub con
+> su `league_id`. Las ligas fijas siguen con su propio workflow
+> (`scripts/sync-results.mjs`). La lógica de mapeo de equipos es compartida
+> (`scripts/wc-results.mjs`).
+
+---
+
 ## Cómo elige la app qué liga mostrar
 
 1. `?liga=clave` en la URL (para probar; queda recordado en ese navegador).
