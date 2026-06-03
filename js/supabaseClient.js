@@ -16,6 +16,22 @@
   const REMOTE = !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY);
   const sb = REMOTE ? supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY) : null;
 
+  // Cliente del HUB de ligas self-service (para crear/resolver ligas de usuario).
+  // En una liga de usuario coincide con el cliente principal; en una liga fija es
+  // un cliente aparte que apunta al Supabase compartido.
+  const HUB = window.PRODE_HUB || {};
+  const hubClient = (HUB.url && HUB.anonKey)
+    ? (cfg.IS_USER_LEAGUE ? sb : supabase.createClient(HUB.url, HUB.anonKey))
+    : null;
+
+  // league_id activo (solo para ligas de usuario; en ligas fijas queda null y
+  // las consultas se comportan EXACTAMENTE como antes).
+  let leagueId = cfg.LEAGUE_ID || null;
+  function setLeagueId(id) { leagueId = id || null; }
+
+  // Aplica el filtro por liga solo cuando corresponde (liga de usuario).
+  const scoped = (q) => (leagueId ? q.eq('league_id', leagueId) : q);
+
   // ----- Modo demo (localStorage) -------------------------------------------
   const LS_PLAYERS = 'prode2026_players';
   const LS_RESULTS = 'prode2026_results';
@@ -46,7 +62,7 @@
       const all = lsGet(LS_PLAYERS, {});
       return normalizePlayer(all[playerKey] || null);
     }
-    const { data, error } = await sb.from('players').select('*').eq('player_key', playerKey).maybeSingle();
+    const { data, error } = await scoped(sb.from('players').select('*').eq('player_key', playerKey)).maybeSingle();
     if (error) throw error;
     return normalizePlayer(data);
   }
@@ -58,6 +74,7 @@
       dni: dni || null,
       predictions: {}, confirmed: false, payment_validated: false,
     };
+    if (leagueId) record.league_id = leagueId;
     if (!REMOTE) {
       const all = lsGet(LS_PLAYERS, {});
       all[player_key] = { ...record, created_at: new Date().toISOString() };
@@ -78,7 +95,7 @@
       lsSet(LS_PLAYERS, all);
       return normalizePlayer(all[player_key]);
     }
-    const { data, error } = await sb.from('players').update({ dni }).eq('player_key', player_key).select().single();
+    const { data, error } = await scoped(sb.from('players').update({ dni }).eq('player_key', player_key)).select().single();
     if (error) throw error;
     return normalizePlayer(data);
   }
@@ -96,7 +113,7 @@
     }
     const patch = { predictions };
     if (payment_reference !== undefined) patch.payment_reference = payment_reference;
-    const { data, error } = await sb.from('players').update(patch).eq('player_key', player_key).select().single();
+    const { data, error } = await scoped(sb.from('players').update(patch).eq('player_key', player_key)).select().single();
     if (error) throw error;
     return normalizePlayer(data);
   }
@@ -115,14 +132,14 @@
     }
     const patch = { predictions, confirmed: true, confirmed_at: confirmedAt };
     if (payment_reference !== undefined) patch.payment_reference = payment_reference;
-    const { data, error } = await sb.from('players').update(patch).eq('player_key', player_key).select().single();
+    const { data, error } = await scoped(sb.from('players').update(patch).eq('player_key', player_key)).select().single();
     if (error) throw error;
     return normalizePlayer(data);
   }
 
   async function getAllPlayers() {
     if (!REMOTE) return Object.values(lsGet(LS_PLAYERS, {})).map(normalizePlayer);
-    const { data, error } = await sb.from('players').select('*');
+    const { data, error } = await scoped(sb.from('players').select('*'));
     if (error) throw error;
     return (data || []).map(normalizePlayer);
   }
@@ -130,7 +147,7 @@
   // ----- Resultados oficiales (admin) ---------------------------------------
   async function getResults() {
     if (!REMOTE) return lsGet(LS_RESULTS, {});
-    const { data, error } = await sb.from('match_results').select('*');
+    const { data, error } = await scoped(sb.from('match_results').select('*'));
     if (error) throw error;
     const map = {};
     (data || []).forEach((r) => { map[r.match_id] = { h: r.home_goals, a: r.away_goals }; });
@@ -142,6 +159,13 @@
       const all = lsGet(LS_RESULTS, {});
       all[match_id] = { h: home_goals, a: away_goals };
       lsSet(LS_RESULTS, all);
+      return;
+    }
+    if (leagueId) {
+      const { error } = await sb.from('match_results')
+        .upsert({ league_id: leagueId, match_id, home_goals, away_goals, updated_at: new Date().toISOString() },
+                { onConflict: 'league_id,match_id' });
+      if (error) throw error;
       return;
     }
     const { error } = await sb.from('match_results')
@@ -157,7 +181,7 @@
       lsSet(LS_PLAYERS, all);
       return;
     }
-    const { error } = await sb.from('players').delete().eq('player_key', player_key);
+    const { error } = await scoped(sb.from('players').delete().eq('player_key', player_key));
     if (error) throw error;
   }
 
@@ -169,7 +193,7 @@
       if (all[player_key]) { all[player_key].dni = null; lsSet(LS_PLAYERS, all); }
       return;
     }
-    const { error } = await sb.from('players').update({ dni: null }).eq('player_key', player_key);
+    const { error } = await scoped(sb.from('players').update({ dni: null }).eq('player_key', player_key));
     if (error) throw error;
   }
 
@@ -179,8 +203,39 @@
       if (all[player_key]) { all[player_key].payment_validated = validated; lsSet(LS_PLAYERS, all); }
       return;
     }
-    const { error } = await sb.from('players').update({ payment_validated: validated }).eq('player_key', player_key);
+    const { error } = await scoped(sb.from('players').update({ payment_validated: validated }).eq('player_key', player_key));
     if (error) throw error;
+  }
+
+  // ----- HUB: ligas self-service --------------------------------------------
+  // ¿Está disponible la creación/uso de ligas de usuario?
+  function hubReady() { return !!hubClient; }
+
+  // Buscar una liga de usuario por su código (devuelve la fila o null).
+  async function resolveLeague(code) {
+    if (!hubClient) return null;
+    const { data, error } = await hubClient.from('leagues').select('*').eq('code', code).maybeSingle();
+    if (error) throw error;
+    return data || null;
+  }
+
+  // Crear una liga nueva (valida la clave general del lado servidor en la RPC).
+  // payload: { creation_key, name, admin_pass, subtitle, logo_url, colors, entry, prizes }
+  async function createLeague(payload) {
+    if (!hubClient) throw new Error('La creación de ligas no está configurada.');
+    const { data, error } = await hubClient.rpc('create_league', {
+      p_creation_key: payload.creation_key,
+      p_name:         payload.name,
+      p_admin_pass:   payload.admin_pass,
+      p_subtitle:     payload.subtitle || null,
+      p_logo_url:     payload.logo_url || null,
+      p_colors:       payload.colors || {},
+      p_entry:        payload.entry  || {},
+      p_prizes:       payload.prizes || {},
+    });
+    if (error) throw error;
+    // La RPC devuelve la fila creada (o un array de una fila, según PostgREST).
+    return Array.isArray(data) ? data[0] : data;
   }
 
   window.PRODE_DB = {
@@ -188,5 +243,7 @@
     getServerNow, getPlayer, createPlayer, setDni, savePredictions, confirmPlayer,
     getAllPlayers, getResults, saveResult, setPaymentValidated,
     deletePlayer, resetDni,
+    // Hub de ligas self-service
+    hubReady, resolveLeague, createLeague, setLeagueId,
   };
 })();

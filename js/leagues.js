@@ -127,3 +127,26 @@ window.PRODE_LEAGUES = {
 
 // Liga que se usa si el dominio no coincide con ninguna (previews, local, etc.)
 window.PRODE_DEFAULT_LEAGUE = 'vamos-argentina';
+
+/*
+ * ============================================================================
+ * HUB de ligas self-service (las que crean los propios usuarios)
+ * ============================================================================
+ * Un solo Supabase COMPARTIDO donde vive cada liga creada desde la app como
+ * una fila (ver db/schema-hub.sql). Cuando alguien entra con un código que NO
+ * es una liga fija de arriba (ej: ?liga=ABC123), la app lo busca acá.
+ *
+ * Pasos:
+ *   1) Creá un proyecto Supabase nuevo y corré db/schema-hub.sql.
+ *   2) Pegá su Project URL y anon public key abajo.
+ *   3) Definí la "clave general de creación" DENTRO de db/schema-hub.sql
+ *      (constante v_key de la función create_league). La app no la guarda:
+ *      el usuario la escribe al crear su liga y se valida del lado servidor.
+ *
+ * Mientras url/anonKey estén vacíos, la creación de ligas queda DESACTIVADA
+ * (el botón "Crear mi liga" no aparece) y las ligas fijas siguen funcionando.
+ */
+window.PRODE_HUB = {
+  url: '',      // ej: 'https://xxxxxxxx.supabase.co'
+  anonKey: '',  // ej: 'sb_publishable_...' o 'eyJhbGciOi...'
+};

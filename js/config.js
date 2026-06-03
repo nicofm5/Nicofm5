@@ -6,43 +6,53 @@
  * objeto window.PRODE_CONFIG que el resto de la app consume.
  *
  * Cómo elige la liga (en este orden):
- *   1) ?liga=key en la URL  (para probar; queda recordado en este navegador)
- *   2) el dominio actual, comparándolo con los "hostnames" de cada liga
+ *   1) ?liga=valor en la URL  (queda recordado en este navegador)
+ *        - si "valor" es una liga FIJA (de leagues.js) → la usa tal cual
+ *        - si NO lo es y el HUB está configurado → es una liga de USUARIO
+ *          (una fila en el Supabase compartido); su branding se resuelve después
+ *          de cargar (app.js consulta el hub por ese código).
+ *   2) el dominio actual, comparándolo con los "hostnames" de cada liga fija
  *   3) la liga por defecto (window.PRODE_DEFAULT_LEAGUE)
  */
 (function () {
   const leagues = window.PRODE_LEAGUES || {};
   const defaultKey = window.PRODE_DEFAULT_LEAGUE;
+  const HUB = window.PRODE_HUB || {};
+  const HUB_READY = !!(HUB.url && HUB.anonKey);
 
-  function pickLeagueKey() {
-    // 1) override por querystring (?liga=...) — útil para probar
+  // Devuelve el valor pedido explícitamente (?liga=... o el recordado), o null.
+  function getOverride() {
     try {
       const qs = new URLSearchParams(window.location.search);
       const q = qs.get('liga');
-      if (q && leagues[q]) {
-        localStorage.setItem('prode_liga_override', q);
-        return q;
-      }
+      if (q) { localStorage.setItem('prode_liga_override', q); return q; }
       const saved = localStorage.getItem('prode_liga_override');
-      if (saved && leagues[saved]) return saved;
+      if (saved) return saved;
     } catch (e) { /* sin localStorage: seguimos */ }
-
-    // 2) por dominio
-    const host = window.location.hostname;
-    for (const key in leagues) {
-      const hosts = leagues[key].hostnames || [];
-      if (hosts.includes(host)) return key;
-    }
-
-    // 3) por defecto
-    if (defaultKey && leagues[defaultKey]) return defaultKey;
-    return Object.keys(leagues)[0];
+    return null;
   }
 
-  const key = pickLeagueKey();
+  function getDomainKey() {
+    const host = window.location.hostname;
+    for (const k in leagues) {
+      if ((leagues[k].hostnames || []).includes(host)) return k;
+    }
+    return null;
+  }
+
+  const override = getOverride();
+  let key, isUserLeague = false;
+  if (override && leagues[override]) {
+    key = override;                 // liga fija elegida explícitamente
+  } else if (override && HUB_READY) {
+    key = override; isUserLeague = true;  // código de liga de usuario (se resuelve luego)
+  } else {
+    key = getDomainKey() || (defaultKey && leagues[defaultKey] ? defaultKey : Object.keys(leagues)[0]);
+  }
+
   const L = leagues[key] || {};
   const b = L.branding || {};
-  const sb = L.supabase || {};
+  const sb = isUserLeague ? { url: HUB.url, anonKey: HUB.anonKey } : (L.supabase || {});
   const entry = L.entry || {};
   const prizes = L.prizes || {};
 
@@ -50,7 +60,12 @@
   window.PRODE_CONFIG = {
     LEAGUE_KEY: key,
 
-    // Supabase
+    // Liga de usuario (hub): el branding/admin se completa tras resolver el código.
+    IS_USER_LEAGUE: isUserLeague,
+    LEAGUE_ID: null,
+    HUB_READY: HUB_READY,
+
+    // Supabase (para liga de usuario apunta al hub compartido)
     SUPABASE_URL: sb.url || '',
     SUPABASE_ANON_KEY: sb.anonKey || '',
 

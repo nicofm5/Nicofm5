@@ -476,13 +476,15 @@
     panel.innerHTML = '<p class="muted">Cargando partidos...</p>';
     state.results = await DB.getResults();
     const groupLetters = Object.keys(GROUPS);
-    panel.innerHTML = `
+    // La sincronización automática desde la API apunta al backend de las ligas
+    // fijas; en una liga de usuario los resultados se cargan a mano (por ahora).
+    const syncBar = cfg.IS_USER_LEAGUE ? '' : `
       <div class="sync-bar">
         <button class="btn small" id="syncApiBtn">Sincronizar desde API</button>
         <span id="syncApiStatus" class="muted"></span>
         <span class="muted small-note">Se actualiza automáticamente cada hora vía cron.</span>
-      </div>
-      ` + groupLetters.map((g) => {
+      </div>`;
+    panel.innerHTML = syncBar + groupLetters.map((g) => {
       const matches = MATCHES.filter((m) => m.group === g);
       return `
         <section class="group">
@@ -661,6 +663,115 @@
   }
 
   // ============================================================================
+  // LIGAS SELF-SERVICE (crear / resolver)
+  // ============================================================================
+  // Vuelca los datos de una liga de usuario (fila del hub) sobre la config.
+  function applyLeagueRow(row) {
+    cfg.LEAGUE_ID = row.id;
+    cfg.APP_TITLE = row.name || cfg.APP_TITLE;
+    cfg.APP_SUBTITLE = row.subtitle || 'Liga · Fase de grupos';
+    cfg.LOGO = row.logo_url || 'assets/logo26.png';
+    cfg.ADMIN_PASSWORD = row.admin_pass || '';
+    cfg.THEME = row.colors || {};
+    const entry = row.entry || {};
+    cfg.ENTRY_ENABLED = !!entry.enabled;
+    cfg.ENTRY_COST = entry.cost || '';
+    cfg.ENTRY_ALIAS = entry.alias || '';
+    cfg.ENTRY_NOTE = entry.note || '';
+    const pr = row.prizes || {};
+    cfg.PRIZES = {
+      first: pr.first || '1° Premio',
+      second: pr.second || '2° Premio',
+      third: pr.third || '3° Premio',
+    };
+    DB.setLeagueId(row.id);
+  }
+
+  function leagueLink(code) {
+    return window.location.origin + window.location.pathname + '?liga=' + encodeURIComponent(code);
+  }
+
+  function showCreateView() {
+    $('#createForm').hidden = false;
+    $('#createdCard').hidden = true;
+    $('#createError').hidden = true;
+    showView('create');
+  }
+
+  function showLeagueNotFound() {
+    if (!DB.hubReady || !DB.hubReady()) { showView('welcome'); return; }
+    showCreateView();
+    const err = $('#createError');
+    err.textContent = 'No encontramos una liga con ese código. ¿Querés crear una nueva?';
+    err.hidden = false;
+  }
+
+  function mapCreateError(err) {
+    const m = (err && err.message) || '';
+    if (m.includes('CLAVE_INVALIDA')) return 'La clave de creación no es válida.';
+    if (m.includes('NOMBRE_REQUERIDO')) return 'Falta el nombre de la liga.';
+    if (m.includes('ADMIN_PASS_REQUERIDO')) return 'Falta la clave de administrador.';
+    return 'No se pudo crear la liga: ' + (m || 'error desconocido');
+  }
+
+  async function handleCreateLeague(e) {
+    e.preventDefault();
+    const errEl = $('#createError'); errEl.hidden = true;
+    const name = $('#clName').value.trim();
+    const subtitle = $('#clSubtitle').value.trim();
+    const logo = $('#clLogo').value.trim();
+    const color = $('#clColor').value;
+    const adminPass = $('#clAdminPass').value.trim();
+    const creationKey = $('#clCreationKey').value.trim();
+    if (!name || !adminPass || !creationKey) {
+      errEl.textContent = 'Completá nombre, clave de administrador y clave de creación.';
+      errEl.hidden = false; return;
+    }
+    // Color principal opcional → sobrescribe los acentos celestes del tema.
+    const colors = color ? { '--celeste': color, '--celeste-2': color } : {};
+    const btn = $('#clSubmitBtn'); btn.disabled = true; btn.textContent = 'Creando...';
+    try {
+      const row = await DB.createLeague({
+        creation_key: creationKey, name, admin_pass: adminPass,
+        subtitle, logo_url: logo, colors,
+        entry: { enabled: false }, prizes: {},
+      });
+      showCreatedLeague(row.code);
+    } catch (err) {
+      console.error(err);
+      errEl.textContent = mapCreateError(err);
+      errEl.hidden = false;
+    } finally {
+      btn.disabled = false; btn.textContent = 'Crear liga';
+    }
+  }
+
+  function showCreatedLeague(code) {
+    const link = leagueLink(code);
+    $('#createForm').hidden = true;
+    $('#createdCard').hidden = false;
+    $('#createError').hidden = true;
+    $('#createdLink').value = link;
+    $('#createdCode').textContent = code;
+    const msg = `Te invito a mi prode del Mundial 2026 "${$('#clName').value.trim()}". Entrá y jugá: ${link}`;
+    $('#whatsappShare').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    $('#enterLeagueBtn').onclick = () => { window.location.href = link; };
+  }
+
+  function copyCreatedLink() {
+    const inp = $('#createdLink');
+    inp.select();
+    inp.setSelectionRange(0, 99999);
+    const done = () => {
+      const b = $('#copyLinkBtn'); const t = b.textContent;
+      b.textContent = '¡Copiado!'; setTimeout(() => { b.textContent = t; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(inp.value).then(done).catch(() => { try { document.execCommand('copy'); done(); } catch (e) {} });
+    } else { try { document.execCommand('copy'); done(); } catch (e) {} }
+  }
+
+  // ============================================================================
   // INICIALIZACIÓN
   // ============================================================================
   function applyConfigToUI() {
@@ -715,6 +826,10 @@
     note.textContent = DB.isRemote()
       ? '🟢 Conectado al servidor compartido (multijugador).'
       : '🟡 Modo demo (sin backend): los datos quedan solo en este navegador. Configurá Supabase en js/config.js para jugar entre varios.';
+
+    // "Crear mi liga": solo si el hub de ligas self-service está configurado.
+    const createCta = $('#createCta');
+    if (createCta && DB.hubReady && DB.hubReady()) createCta.hidden = false;
   }
 
   function bindEvents() {
@@ -725,6 +840,12 @@
     $('#printBtn').addEventListener('click', () => window.print());
     $('#backFromTicket').addEventListener('click', () => { renderGroups(); showView('fixture'); });
     $('#adminForm').addEventListener('submit', handleAdminLogin);
+
+    // Crear liga (self-service)
+    const goCreate = $('#goCreateBtn'); if (goCreate) goCreate.addEventListener('click', showCreateView);
+    const clCancel = $('#clCancelBtn'); if (clCancel) clCancel.addEventListener('click', () => showView('welcome'));
+    const createForm = $('#createForm'); if (createForm) createForm.addEventListener('submit', handleCreateLeague);
+    const copyBtn = $('#copyLinkBtn'); if (copyBtn) copyBtn.addEventListener('click', copyCreatedLink);
 
     $$('.nav-btn[data-view]').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -749,8 +870,22 @@
   }
 
   async function init() {
-    applyConfigToUI();
     bindEvents();
+
+    // Liga de usuario (hub): resolver su código ANTES de pintar la UI, así el
+    // título, los colores y la clave de admin son los de esa liga.
+    if (cfg.IS_USER_LEAGUE) {
+      try {
+        const row = await DB.resolveLeague(cfg.LEAGUE_KEY);
+        if (!row) { applyConfigToUI(); showLeagueNotFound(); return; }
+        applyLeagueRow(row);
+      } catch (e) {
+        console.error('No se pudo resolver la liga:', e);
+        applyConfigToUI(); showLeagueNotFound(); return;
+      }
+    }
+
+    applyConfigToUI();
 
     // Sincronizar reloj con el servidor para un bloqueo uniforme entre clientes.
     try {

@@ -14,6 +14,37 @@ el cambio aplica a **todas** las ligas automáticamente.
 
 ---
 
+## Ligas self-service (las crea cada usuario, sin que vos intervengas)
+
+Además de las ligas "fijas" de `leagues.js` (cada una con su Supabase/Vercel),
+ahora cualquiera puede **crear su propia liga** desde la app. Todas esas ligas
+viven en **un solo Supabase compartido** (el "hub"), cada una como una **fila**.
+
+**Flujo para el usuario:** entra → botón **"Crear mi liga"** → pone nombre y una
+clave de admin propia + la **clave general de creación** → recibe un **link**
+(`tusitio/?liga=ABC123`) que comparte. Quien entre con ese link juega en su liga;
+el creador administra **solo la suya** con su clave. Vos no intervenís.
+
+**Cómo activarlo (una sola vez):**
+
+1. Creá un proyecto Supabase **nuevo y compartido** (el hub) y corré
+   `db/schema-hub.sql` en su SQL Editor.
+2. Dentro de ese SQL, editá la constante `v_key` de la función `create_league`:
+   es la **clave general de creación** que vas a repartir para frenar el abuso.
+3. Pegá la **Project URL** y la **anon key** del hub en `js/leagues.js` →
+   `window.PRODE_HUB`.
+4. Deploy. Listo: aparece el botón "Crear mi liga".
+
+Mientras `PRODE_HUB` esté vacío, la creación queda desactivada y las ligas
+fijas siguen funcionando igual (convivencia total).
+
+> **Pendiente (a futuro):** el robot de resultados automático todavía corre solo
+> para las ligas fijas. En las ligas de usuario los resultados se cargan a mano
+> desde el panel admin. Para automatizarlo habría que hacer un workflow que
+> recorra todas las ligas del hub.
+
+---
+
 ## Cómo elige la app qué liga mostrar
 
 1. `?liga=clave` en la URL (para probar; queda recordado en ese navegador).
