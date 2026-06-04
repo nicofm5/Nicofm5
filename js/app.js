@@ -691,9 +691,13 @@
     DB.setLeagueId(row.id);
   }
 
-  // Link corto de la liga: dominio.app/CODIGO
+  // Link de la liga: dominio.app/?liga=CODIGO
+  // Usamos el parámetro ?liga= (y no el path corto /CODIGO) porque funciona en
+  // CUALQUIER deploy: carga index.html en la raíz y la app resuelve el código.
+  // El link corto /CODIGO depende de un rewrite de Vercel que no siempre está
+  // activo y, cuando falta, da un 404 del lado de Vercel antes de cargar la app.
   function leagueLink(code) {
-    return window.location.origin + '/' + encodeURIComponent(code);
+    return window.location.origin + '/?liga=' + encodeURIComponent(code);
   }
 
   function showCreateView() {
