@@ -387,8 +387,10 @@
 
       if (!board.length) { container.innerHTML = '<p class="muted">Todavía no hay jugadores.</p>'; return; }
 
-      // La columna "Pago" solo se muestra si la liga cobra inscripción.
-      const showPay = !!cfg.ENTRY_ENABLED;
+      // La columna "Pago" se muestra si la liga cobra inscripción o si el admin
+      // ya marcó a algún jugador como acreditado (así el ranking identifica con
+      // ✅ a los que pagaron y con — a los que juegan sin pagar).
+      const showPay = !!cfg.ENTRY_ENABLED || board.some((r) => r.payment_validated);
 
       container.innerHTML = `
         ${podiumHTML(board)}
