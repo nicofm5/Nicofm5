@@ -546,9 +546,15 @@
     players.sort((a, b) =>
       `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, 'es'));
 
+    // Resumen de pagos: cuántos están acreditados y cuántos juegan sin pagar.
+    const paidCount = players.filter((p) => p.payment_validated).length;
+    const paySummaryHTML = (n) =>
+      `💰 Pagaron: <strong>${n}</strong> · Juegan sin pagar: <strong>${players.length - n}</strong>`;
+
     panel.innerHTML = `
       <div class="players-bar">
         <span class="muted">${players.length} jugador(es) registrado(s).</span>
+        <span class="muted" id="paySummary">${paySummaryHTML(paidCount)}</span>
         <button class="btn small ghost" id="exportPlayersBtn">⬇ Exportar CSV</button>
       </div>
       ` + players.map((p) => {
@@ -559,6 +565,7 @@
           <div class="ap-head">
             <strong>${escapeHtml(p.first_name + ' ' + p.last_name)}</strong>
             <span class="badge ${count >= MATCHES.length ? 'ok' : 'pending'}">${count}/${MATCHES.length} pronósticos</span>
+            <span class="badge ${p.payment_validated ? 'ok' : 'pending'}" data-pay-badge="${escapeHtml(p.player_key)}">${p.payment_validated ? 'Pagó' : 'No pagó'}</span>
           </div>
           <div class="ap-body">
             <span>DNI: <strong>${escapeHtml(p.dni || '—')}</strong></span>
@@ -577,7 +584,19 @@
 
     panel.querySelectorAll('[data-validate]').forEach((chk) => {
       chk.addEventListener('change', async () => {
-        try { await DB.setPaymentValidated(chk.dataset.validate, chk.checked); }
+        try {
+          await DB.setPaymentValidated(chk.dataset.validate, chk.checked);
+          // Reflejar el cambio en memoria, en el resumen y en la marca del jugador.
+          const p = players.find((x) => x.player_key === chk.dataset.validate);
+          if (p) p.payment_validated = chk.checked;
+          const sum = panel.querySelector('#paySummary');
+          if (sum) sum.innerHTML = paySummaryHTML(players.filter((x) => x.payment_validated).length);
+          const badge = panel.querySelector(`[data-pay-badge="${CSS.escape(chk.dataset.validate)}"]`);
+          if (badge) {
+            badge.textContent = chk.checked ? 'Pagó' : 'No pagó';
+            badge.className = 'badge ' + (chk.checked ? 'ok' : 'pending');
+          }
+        }
         catch (err) { console.error(err); chk.checked = !chk.checked; alert('No se pudo guardar'); }
       });
     });
