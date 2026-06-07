@@ -180,8 +180,15 @@
       <div class="view-head">
         <h2><img class="head-mascot" src="assets/pelota.png" alt="" onerror="this.replaceWith(document.createTextNode('⚽'))" />Cargá tus pronósticos</h2>
         <p class="muted">Las predicciones de cada partido se cierran <strong id="lockMins">60</strong> min antes del inicio (hora de Argentina).</p>
+        <div class="prono-status" id="pronoStatus">
+          <span class="chip chip-ok">✓ Cargados <strong id="cntLoaded">0</strong></span>
+          <span class="chip chip-pending">⏳ Pendientes <strong id="cntPending">0</strong></span>
+          <span class="chip chip-closed" id="cntClosedChip" hidden>🔒 Cerrados sin cargar <strong id="cntClosed">0</strong></span>
+          <button type="button" class="btn small ghost" id="togglePending">Ver solo pendientes</button>
+        </div>
       </div>
       <div id="groupsContainer"></div>
+      <p class="muted empty-pending" id="emptyPending" hidden>🎉 ¡No te queda ningún partido pendiente por cargar!</p>
 
       <div class="action-bar" id="actionBar">
         <button class="btn primary" id="saveDraftBtn">Guardar pronósticos</button>

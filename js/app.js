@@ -20,6 +20,7 @@
     clockOffset: 0,      // (hora servidor - hora local) en ms
     results: {},         // resultados oficiales cacheados
     adminAuthed: false,
+    showOnlyPending: false, // filtro del editor: ocultar partidos ya guardados/cerrados
   };
 
   // ----- Utilidades ----------------------------------------------------------
@@ -163,9 +164,14 @@
     const preds = state.player.predictions || {};
     const container = $('#groupsContainer');
     const groupLetters = Object.keys(GROUPS);
+    const onlyPending = state.showOnlyPending;
 
     container.innerHTML = groupLetters.map((g) => {
-      const matches = MATCHES.filter((m) => m.group === g);
+      let matches = MATCHES.filter((m) => m.group === g);
+      if (onlyPending) {
+        matches = matches.filter((m) => !hasSavedPred(m) && !isLocked(m));
+      }
+      if (!matches.length) return ''; // con el filtro activo: ocultamos grupos sin pendientes
       return `
         <section class="group">
           <h3 class="group-title">Grupo ${g}</h3>
@@ -176,6 +182,35 @@
     }).join('');
 
     refreshLocks();
+    updatePredictionCounters();
+  }
+
+  // Cuenta cargados / pendientes (editables) / cerrados sin cargar.
+  function updatePredictionCounters() {
+    const preds = (state.player && state.player.predictions) || {};
+    let loaded = 0, pending = 0, closed = 0;
+    MATCHES.forEach((m) => {
+      const saved = !!(preds[m.id] && preds[m.id].h != null && preds[m.id].a != null);
+      if (saved) loaded += 1;
+      else if (isLocked(m)) closed += 1;
+      else pending += 1;
+    });
+
+    const cntL = $('#cntLoaded'), cntP = $('#cntPending'), cntC = $('#cntClosed'), cntCBox = $('#cntClosedChip');
+    if (cntL) cntL.textContent = `${loaded}/${MATCHES.length}`;
+    if (cntP) cntP.textContent = pending;
+    if (cntC) cntC.textContent = closed;
+    if (cntCBox) cntCBox.hidden = closed === 0;
+
+    const empty = $('#emptyPending');
+    if (empty) empty.hidden = !(state.showOnlyPending && pending === 0);
+
+    const btn = $('#togglePending');
+    if (btn) {
+      btn.disabled = pending === 0 && !state.showOnlyPending;
+      btn.classList.toggle('active', state.showOnlyPending);
+      btn.textContent = state.showOnlyPending ? 'Ver todos los partidos' : 'Ver solo pendientes';
+    }
   }
 
   function matchCardHTML(m, pred) {
@@ -226,6 +261,7 @@
         statusEl.innerHTML = `<span class="badge open">Abierto · cierra en ${formatCountdown(mins)}</span>`;
       }
     });
+    updatePredictionCounters();
   }
 
   function formatCountdown(mins) {
@@ -910,6 +946,10 @@
     $('#logoutBtn').addEventListener('click', logout);
     $('#saveDraftBtn').addEventListener('click', savePlays);
     $('#ticketBtn').addEventListener('click', () => { renderTicket(); showView('ticket'); });
+    $('#togglePending').addEventListener('click', () => {
+      state.showOnlyPending = !state.showOnlyPending;
+      renderGroups();
+    });
     $('#printBtn').addEventListener('click', () => window.print());
     $('#backFromTicket').addEventListener('click', () => { renderGroups(); showView('fixture'); });
     $('#adminForm').addEventListener('submit', handleAdminLogin);
