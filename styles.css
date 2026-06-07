@@ -456,26 +456,37 @@ hr.soft { border: none; border-top: 1px solid rgba(255,255,255,.12); margin: 18p
   gap: 8px;
   margin-top: 10px;
 }
+.prono-status .prono-help {
+  width: 100%; margin: 0 0 -2px; color: #c2cadf; font-size: 0.85rem;
+}
 .prono-status .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: 999px;
   font-size: 0.88rem;
   font-weight: 600;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: #fff;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .15s ease, background .2s, border-color .2s, opacity .2s;
 }
+.prono-status .chip:hover:not(:disabled) { transform: translateY(-1px); }
+.prono-status .chip:disabled { opacity: 0.45; cursor: not-allowed; }
 .prono-status .chip strong { font-weight: 800; }
 .prono-status .chip-ok { background: rgba(46, 204, 113, 0.22); border-color: rgba(46, 204, 113, 0.55); }
 .prono-status .chip-pending { background: rgba(241, 196, 15, 0.22); border-color: rgba(241, 196, 15, 0.55); }
 .prono-status .chip-closed { background: rgba(231, 76, 60, 0.18); border-color: rgba(231, 76, 60, 0.5); }
-.prono-status .btn.small { margin-left: auto; }
-.prono-status .btn.ghost.active {
-  background: rgba(255, 255, 255, 0.16);
-  border-color: rgba(255, 255, 255, 0.55);
+.prono-status .chip.active {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 6px 18px rgba(0, 0, 0, 0.35);
+  transform: translateY(-1px);
+}
+.prono-status .chip-clear {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 .empty-pending { text-align: center; padding: 24px; font-size: 1rem; }
 

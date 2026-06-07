@@ -20,7 +20,7 @@
     clockOffset: 0,      // (hora servidor - hora local) en ms
     results: {},         // resultados oficiales cacheados
     adminAuthed: false,
-    showOnlyPending: false, // filtro del editor: ocultar partidos ya guardados/cerrados
+    fixtureFilter: 'all', // 'all' | 'saved' | 'pending' | 'closed'
   };
 
   // ----- Utilidades ----------------------------------------------------------
@@ -160,18 +160,28 @@
   // ============================================================================
   // EDITOR DE PRONÓSTICOS
   // ============================================================================
+  // ¿Este partido entra en el filtro elegido?
+  function matchPassesFilter(m, filter) {
+    const saved = hasSavedPred(m);
+    const locked = isLocked(m);
+    switch (filter) {
+      case 'saved':   return saved;
+      case 'pending': return !saved && !locked;
+      case 'closed':  return !saved && locked;
+      default:        return true; // 'all'
+    }
+  }
+
   function renderGroups() {
     const preds = state.player.predictions || {};
     const container = $('#groupsContainer');
     const groupLetters = Object.keys(GROUPS);
-    const onlyPending = state.showOnlyPending;
+    const filter = state.fixtureFilter;
 
     container.innerHTML = groupLetters.map((g) => {
       let matches = MATCHES.filter((m) => m.group === g);
-      if (onlyPending) {
-        matches = matches.filter((m) => !hasSavedPred(m) && !isLocked(m));
-      }
-      if (!matches.length) return ''; // con el filtro activo: ocultamos grupos sin pendientes
+      if (filter !== 'all') matches = matches.filter((m) => matchPassesFilter(m, filter));
+      if (!matches.length) return ''; // con filtro activo: ocultamos grupos sin partidos
       return `
         <section class="group">
           <h3 class="group-title">Grupo ${g}</h3>
@@ -202,14 +212,33 @@
     if (cntC) cntC.textContent = closed;
     if (cntCBox) cntCBox.hidden = closed === 0;
 
-    const empty = $('#emptyPending');
-    if (empty) empty.hidden = !(state.showOnlyPending && pending === 0);
+    // Resaltar el chip activo y deshabilitar los que tienen 0 partidos.
+    const filter = state.fixtureFilter;
+    const chipCount = { saved: loaded, pending, closed };
+    $$('.prono-status .chip[data-filter]').forEach((c) => {
+      const f = c.dataset.filter;
+      c.classList.toggle('active', filter === f);
+      c.disabled = chipCount[f] === 0 && filter !== f;
+    });
+    const clearBtn = $('#clearFilter');
+    if (clearBtn) clearBtn.hidden = filter === 'all';
 
-    const btn = $('#togglePending');
-    if (btn) {
-      btn.disabled = pending === 0 && !state.showOnlyPending;
-      btn.classList.toggle('active', state.showOnlyPending);
-      btn.textContent = state.showOnlyPending ? 'Ver todos los partidos' : 'Ver solo pendientes';
+    // Mensaje contextual cuando el filtro deja la lista vacía.
+    const empty = $('#emptyPending');
+    if (empty) {
+      const visibleCount = filter === 'all' ? MATCHES.length : chipCount[filter];
+      if (visibleCount === 0) {
+        empty.hidden = false;
+        empty.textContent = filter === 'pending'
+          ? '🎉 ¡No te queda ningún partido pendiente por cargar!'
+          : filter === 'saved'
+            ? '📝 Todavía no guardaste ningún pronóstico.'
+            : filter === 'closed'
+              ? '👍 No tenés partidos cerrados sin cargar.'
+              : '';
+      } else {
+        empty.hidden = true;
+      }
     }
   }
 
@@ -946,8 +975,16 @@
     $('#logoutBtn').addEventListener('click', logout);
     $('#saveDraftBtn').addEventListener('click', savePlays);
     $('#ticketBtn').addEventListener('click', () => { renderTicket(); showView('ticket'); });
-    $('#togglePending').addEventListener('click', () => {
-      state.showOnlyPending = !state.showOnlyPending;
+    $$('.prono-status .chip[data-filter]').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const wanted = chip.dataset.filter;
+        // Tocar el chip activo lo desactiva (vuelve a "todos").
+        state.fixtureFilter = state.fixtureFilter === wanted ? 'all' : wanted;
+        renderGroups();
+      });
+    });
+    $('#clearFilter').addEventListener('click', () => {
+      state.fixtureFilter = 'all';
       renderGroups();
     });
     $('#printBtn').addEventListener('click', () => window.print());

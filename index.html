@@ -181,14 +181,15 @@
         <h2><img class="head-mascot" src="assets/pelota.png" alt="" onerror="this.replaceWith(document.createTextNode('⚽'))" />Cargá tus pronósticos</h2>
         <p class="muted">Las predicciones de cada partido se cierran <strong id="lockMins">60</strong> min antes del inicio (hora de Argentina).</p>
         <div class="prono-status" id="pronoStatus">
-          <span class="chip chip-ok">✓ Cargados <strong id="cntLoaded">0</strong></span>
-          <span class="chip chip-pending">⏳ Pendientes <strong id="cntPending">0</strong></span>
-          <span class="chip chip-closed" id="cntClosedChip" hidden>🔒 Cerrados sin cargar <strong id="cntClosed">0</strong></span>
-          <button type="button" class="btn small ghost" id="togglePending">Ver solo pendientes</button>
+          <p class="muted prono-help">Tocá un chip para filtrar los partidos:</p>
+          <button type="button" class="chip chip-ok" data-filter="saved" title="Ver solo los partidos que ya cargaste">✓ Cargados <strong id="cntLoaded">0</strong></button>
+          <button type="button" class="chip chip-pending" data-filter="pending" title="Ver solo los partidos que te faltan completar">⏳ Pendientes <strong id="cntPending">0</strong></button>
+          <button type="button" class="chip chip-closed" id="cntClosedChip" data-filter="closed" title="Ver los partidos que se cerraron sin que cargaras pronóstico" hidden>🔒 Cerrados sin cargar <strong id="cntClosed">0</strong></button>
+          <button type="button" class="chip chip-clear" id="clearFilter" hidden>✕ Quitar filtro</button>
         </div>
       </div>
       <div id="groupsContainer"></div>
-      <p class="muted empty-pending" id="emptyPending" hidden>🎉 ¡No te queda ningún partido pendiente por cargar!</p>
+      <p class="muted empty-pending" id="emptyPending" hidden></p>
 
       <div class="action-bar" id="actionBar">
         <button class="btn primary" id="saveDraftBtn">Guardar pronósticos</button>
