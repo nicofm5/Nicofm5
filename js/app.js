@@ -410,11 +410,12 @@
   // ============================================================================
   // Podio visual de los 3 primeros, con su premio. Solo aparece cuando ya hay
   // al menos un partido jugado y alguien con puntos.
-  // Copa del Mundo dibujada en SVG (globo dorado + bandas de malaquita) para
-  // el 1° puesto. Es vectorial: se ve nítida en cualquier tamaño y no depende
-  // de descargar ninguna imagen.
+  // Copa del Mundo del 1° puesto: usa la foto real (assets/copa.png). Si el
+  // archivo no está subido todavía, cae al dibujo SVG de respaldo.
   const WORLD_CUP_TROPHY = `
-    <svg class="wc-trophy" viewBox="0 0 64 94" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Copa del Mundo">
+    <img class="wc-img" src="assets/copa.png" alt="Copa del Mundo"
+         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+    <svg class="wc-trophy" style="display:none" viewBox="0 0 64 94" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Copa del Mundo">
       <defs>
         <radialGradient id="wcGlobe" cx="35%" cy="28%" r="80%">
           <stop offset="0%" stop-color="#fff3c4"/>
