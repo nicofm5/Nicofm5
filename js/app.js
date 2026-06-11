@@ -410,6 +410,45 @@
   // ============================================================================
   // Podio visual de los 3 primeros, con su premio. Solo aparece cuando ya hay
   // al menos un partido jugado y alguien con puntos.
+  // Copa del Mundo dibujada en SVG (globo dorado + bandas de malaquita) para
+  // el 1° puesto. Es vectorial: se ve nítida en cualquier tamaño y no depende
+  // de descargar ninguna imagen.
+  const WORLD_CUP_TROPHY = `
+    <svg class="wc-trophy" viewBox="0 0 64 94" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Copa del Mundo">
+      <defs>
+        <radialGradient id="wcGlobe" cx="35%" cy="28%" r="80%">
+          <stop offset="0%" stop-color="#fff3c4"/>
+          <stop offset="40%" stop-color="#f2c14e"/>
+          <stop offset="100%" stop-color="#9c6b14"/>
+        </radialGradient>
+        <linearGradient id="wcGold" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#8a5d10"/>
+          <stop offset="28%" stop-color="#f7d878"/>
+          <stop offset="50%" stop-color="#fff3c4"/>
+          <stop offset="72%" stop-color="#e3b143"/>
+          <stop offset="100%" stop-color="#7c500c"/>
+        </linearGradient>
+        <linearGradient id="wcGreen" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#0b3526"/>
+          <stop offset="50%" stop-color="#1e7a52"/>
+          <stop offset="100%" stop-color="#0b3526"/>
+        </linearGradient>
+      </defs>
+      <circle cx="32" cy="18" r="14" fill="url(#wcGlobe)"/>
+      <path d="M21 13 q5 -4 10 -2 t11 -1 M19 19 q7 3 13 1 t13 1 M24 26 q5 3 10 1 t8 0"
+            stroke="#7c500c" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".5"/>
+      <ellipse cx="26" cy="11" rx="6" ry="4" fill="#fff" opacity=".35"/>
+      <path d="M19 23 C13 31 19 37 25 42 C29 46 30 51 27 57 C25 61 23 64 21 67 L43 67
+               C41 64 39 61 37 57 C34 51 35 46 39 42 C45 37 51 31 45 23
+               C41 28 36 31 32 31 C28 31 23 28 19 23 Z" fill="url(#wcGold)"/>
+      <ellipse cx="32" cy="31" rx="9" ry="2.5" fill="#7c500c" opacity=".35"/>
+      <path d="M21 67 L43 67 C45 69 47 70 48 72 L16 72 C17 70 19 69 21 67 Z" fill="url(#wcGold)"/>
+      <rect x="14" y="72" width="36" height="5" rx="2" fill="url(#wcGreen)"/>
+      <rect x="16" y="77" width="32" height="3" fill="url(#wcGold)"/>
+      <rect x="12" y="80" width="40" height="6" rx="3" fill="url(#wcGreen)"/>
+      <rect x="14" y="86" width="36" height="5" rx="2.5" fill="url(#wcGold)"/>
+    </svg>`;
+
   function podiumHTML(board) {
     const prizes = cfg.PRIZES || {};
     const hasPoints = board.some((r) => r.points > 0);
@@ -419,7 +458,7 @@
     const byRank = (n) => board.find((r) => r.rank === n);
     const slots = [
       { r: byRank(2), pos: 2, medal: '🥈', prize: prizes.second },
-      { r: byRank(1), pos: 1, medal: '🥇', prize: prizes.first },
+      { r: byRank(1), pos: 1, medal: WORLD_CUP_TROPHY, prize: prizes.first },
       { r: byRank(3), pos: 3, medal: '🥉', prize: prizes.third },
     ];
 

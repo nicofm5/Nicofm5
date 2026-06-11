@@ -328,6 +328,17 @@ table.ranking tr.top.me { background: #eef6ff; }
 .podium-slot.me { outline: 2px solid var(--celeste); }
 .podium-medal { font-size: 30px; line-height: 1; }
 .podium-slot.pos-1 .podium-medal { font-size: 40px; }
+/* Copa del Mundo (SVG) del 1° puesto */
+.wc-trophy {
+  height: 64px; width: auto; display: block; margin: 0 auto;
+  filter: drop-shadow(0 6px 14px rgba(247, 200, 0, 0.45));
+  animation: trophyGlow 2.6s ease-in-out infinite alternate;
+}
+@keyframes trophyGlow {
+  from { filter: drop-shadow(0 6px 14px rgba(247, 200, 0, 0.35)); }
+  to   { filter: drop-shadow(0 6px 20px rgba(255, 226, 120, 0.7)); }
+}
+@media (max-width: 460px) { .wc-trophy { height: 48px; } }
 .podium-name { font-weight: 800; font-size: 14px; margin: 6px 2px 2px; }
 .podium-pts { font-size: 12px; color: #cfd6e6; margin-bottom: 8px; }
 .podium-stand {
