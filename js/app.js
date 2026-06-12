@@ -930,6 +930,12 @@
   // logo subido, para que la imagen ocupe todo su recuadro. Devuelve una
   // dataURL recortada, o null si no hay margen o la imagen no se puede leer.
   function trimLogoMargins(url) {
+    // Las imágenes de Supabase Storage no responden con cabeceras CORS, así
+    // que el canvas las marca como "tainted" y no podemos leer sus píxeles.
+    // Las pasamos por /api/proxy-image (mismo origen) para evitarlo.
+    const src = /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\//.test(url)
+      ? '/api/proxy-image?url=' + encodeURIComponent(url)
+      : url;
     return new Promise((resolve) => {
       const im = new Image();
       im.crossOrigin = 'anonymous';
@@ -967,7 +973,7 @@
         } catch (e) { resolve(null); } // canvas bloqueado por CORS u otro error
       };
       im.onerror = () => resolve(null);
-      im.src = url;
+      im.src = src;
     });
   }
 
