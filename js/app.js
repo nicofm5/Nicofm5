@@ -964,9 +964,13 @@
     }
 
     // Flyer de premios de la liga (definido en js/leagues.js → PRODE_LEAGUE_OVERRIDES)
+    // Si hay flyer, ocultamos la foto de "Campeones 2022" para no duplicar imagen
+    // similar (los flyers de premios suelen incluir a la Selección festejando).
     if (cfg.PRIZES_FLYER) {
       const fly = $('#prizesFlyer'), flyImg = $('#prizesFlyerImg');
       if (fly && flyImg) { flyImg.src = cfg.PRIZES_FLYER; fly.hidden = false; }
+      const champ = document.querySelector('.champ');
+      if (champ) champ.hidden = true;
     }
 
     $('#appTitle').textContent = cfg.APP_TITLE;
