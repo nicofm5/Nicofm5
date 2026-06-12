@@ -926,57 +926,6 @@
     } else { try { document.execCommand('copy'); done(); } catch (e) {} }
   }
 
-  // Recorta los márgenes lisos (blancos / color uniforme / transparentes) de un
-  // logo subido, para que la imagen ocupe todo su recuadro. Devuelve una
-  // dataURL recortada, o null si no hay margen o la imagen no se puede leer.
-  function trimLogoMargins(url) {
-    // Las imágenes de Supabase Storage no responden con cabeceras CORS, así
-    // que el canvas las marca como "tainted" y no podemos leer sus píxeles.
-    // Las pasamos por /api/proxy-image (mismo origen) para evitarlo.
-    const src = /^https:\/\/[a-z0-9-]+\.supabase\.co\/storage\/v1\//.test(url)
-      ? '/api/proxy-image?url=' + encodeURIComponent(url)
-      : url;
-    return new Promise((resolve) => {
-      const im = new Image();
-      im.crossOrigin = 'anonymous';
-      im.onload = () => {
-        try {
-          const w = im.naturalWidth, h = im.naturalHeight;
-          if (!w || !h) return resolve(null);
-          const cv = document.createElement('canvas');
-          cv.width = w; cv.height = h;
-          const ctx = cv.getContext('2d');
-          ctx.drawImage(im, 0, 0);
-          const data = ctx.getImageData(0, 0, w, h).data;
-          // El color de fondo se toma de la esquina superior izquierda.
-          const idx = (x, y) => (y * w + x) * 4;
-          const cr = data[0], cg = data[1], cb = data[2], ca = data[3];
-          const isBg = (x, y) => {
-            const i = idx(x, y);
-            if (data[i + 3] < 16) return true;            // transparente
-            if (ca < 16) return false;                     // fondo transparente pero pixel opaco
-            return Math.abs(data[i] - cr) + Math.abs(data[i + 1] - cg) + Math.abs(data[i + 2] - cb) < 48;
-          };
-          const rowBg = (y) => { for (let x = 0; x < w; x++) if (!isBg(x, y)) return false; return true; };
-          const colBg = (x) => { for (let y = 0; y < h; y++) if (!isBg(x, y)) return false; return true; };
-          let top = 0, bottom = h - 1, left = 0, right = w - 1;
-          while (top < bottom && rowBg(top)) top++;
-          while (bottom > top && rowBg(bottom)) bottom--;
-          while (left < right && colBg(left)) left++;
-          while (right > left && colBg(right)) right--;
-          const cw = right - left + 1, ch = bottom - top + 1;
-          if (cw >= w - 4 && ch >= h - 4) return resolve(null); // sin margen apreciable
-          const out = document.createElement('canvas');
-          out.width = cw; out.height = ch;
-          out.getContext('2d').drawImage(im, left, top, cw, ch, 0, 0, cw, ch);
-          resolve(out.toDataURL('image/png'));
-        } catch (e) { resolve(null); } // canvas bloqueado por CORS u otro error
-      };
-      im.onerror = () => resolve(null);
-      im.src = src;
-    });
-  }
-
   // ============================================================================
   // INICIALIZACIÓN
   // ============================================================================
@@ -995,26 +944,18 @@
       // El encuadre cuadrado (badge) es solo para logos SUBIDOS por usuarios
       // (fotos de cualquier proporción). Los logos fijos (Pozo, etc.) se muestran
       // enteros, sin recortar ni deformar.
-      const useBadge = !!cfg.IS_USER_LEAGUE && !isWorldCup;
+      // Las ligas creadas por usuarios usan SOLO el logo oficial del Mundial:
+      // los logos subidos (fotos de cualquier proporción) no quedaban prolijos
+      // en los recuadros. Las ligas fijas (Pozo, etc.) conservan el suyo.
       document.querySelectorAll('.brand-logo').forEach((img) => {
-        img.src = cfg.LOGO;
-        img.classList.toggle('badge', useBadge);
+        img.src = cfg.IS_USER_LEAGUE ? 'assets/logo26.png' : cfg.LOGO;
+        img.classList.remove('badge');
       });
       const leagueLogo = document.querySelector('.hero-league-logo');
-      if (leagueLogo && !isWorldCup) {
+      if (leagueLogo && !isWorldCup && !cfg.IS_USER_LEAGUE) {
         leagueLogo.src = cfg.LOGO;
         leagueLogo.alt = cfg.APP_TITLE || '';
-        leagueLogo.classList.toggle('badge', useBadge);
         leagueLogo.hidden = false;
-      }
-      // Logos subidos por usuarios: recortar los márgenes lisos para que la
-      // imagen llene el recuadro (si falla, queda la original tal cual).
-      if (useBadge) {
-        trimLogoMargins(cfg.LOGO).then((trimmed) => {
-          if (!trimmed) return;
-          document.querySelectorAll('.brand-logo').forEach((img) => { img.src = trimmed; });
-          if (leagueLogo && !isWorldCup) leagueLogo.src = trimmed;
-        });
       }
     }
 
