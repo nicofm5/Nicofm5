@@ -62,6 +62,12 @@
         </figure>
       </div>
 
+      <!-- Flyer de premios de la liga (solo si la liga define uno en leagues.js) -->
+      <figure class="prizes-flyer" id="prizesFlyer" hidden>
+        <img id="prizesFlyerImg" src="" alt="Premios de la liga"
+             onerror="this.closest('.prizes-flyer').hidden = true" />
+      </figure>
+
       <div class="card login-card">
         <h2>Ingresá para jugar</h2>
         <p class="muted">Identificate con tu nombre, apellido y DNI. El DNI es tu clave para recuperar tus jugadas; en el ranking solo se ve tu nombre y apellido.</p>

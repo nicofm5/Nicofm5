@@ -814,6 +814,10 @@
       second: pr.second || '2° Premio',
       third: pr.third || '3° Premio',
     };
+    // Ajustes locales de esta liga (js/leagues.js): premios definidos y flyer.
+    const ov = (window.PRODE_LEAGUE_OVERRIDES || {})[row.code] || {};
+    if (ov.prizes) cfg.PRIZES = Object.assign({}, cfg.PRIZES, ov.prizes);
+    cfg.PRIZES_FLYER = ov.prizesFlyer || null;
     DB.setLeagueId(row.id);
   }
 
@@ -957,6 +961,12 @@
         leagueLogo.alt = cfg.APP_TITLE || '';
         leagueLogo.hidden = false;
       }
+    }
+
+    // Flyer de premios de la liga (definido en js/leagues.js → PRODE_LEAGUE_OVERRIDES)
+    if (cfg.PRIZES_FLYER) {
+      const fly = $('#prizesFlyer'), flyImg = $('#prizesFlyerImg');
+      if (fly && flyImg) { flyImg.src = cfg.PRIZES_FLYER; fly.hidden = false; }
     }
 
     $('#appTitle').textContent = cfg.APP_TITLE;

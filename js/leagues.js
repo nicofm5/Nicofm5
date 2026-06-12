@@ -167,3 +167,22 @@ window.PRODE_GLOBAL_CROSS_PROMO = {
   btnText: 'Ir al Libro del Mundial',
   free: true,
 };
+
+/*
+ * ============================================================================
+ * Ajustes locales por liga de USUARIO (sin tocar la base del hub)
+ * ============================================================================
+ * Clave = código de la liga (el de su link, ej. ?liga=Y6KJBD). Permite fijar
+ * los premios del podio y un flyer de premios que se muestra al ingresar.
+ * El flyer es una imagen subida a /assets de este repo.
+ */
+window.PRODE_LEAGUE_OVERRIDES = {
+  'Y6KJBD': {   // LOGISTICA POZO
+    prizes: {
+      first: '🥇 $140.000',
+      second: '🥈 $40.000',
+      third: '🥉 $10.000 (recuperás lo apostado)',
+    },
+    prizesFlyer: 'assets/premios-logistica.png',
+  },
+};
