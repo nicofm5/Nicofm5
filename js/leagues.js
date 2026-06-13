@@ -184,5 +184,8 @@ window.PRODE_LEAGUE_OVERRIDES = {
       third: '🥉 $10.000 (recuperás lo apostado)',
     },
     prizesFlyer: 'assets/premios-logistica.png',
+    // Inscripcion cerrada: solo entran jugadores ya registrados; los nombres
+    // mal cargados no crean cuenta nueva, ven un error explicativo.
+    registrationClosed: true,
   },
 };

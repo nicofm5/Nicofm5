@@ -119,6 +119,13 @@
         }
         if (!savedDni) player = await DB.setDni(key, dni); // jugador previo sin DNI: lo registra
       } else {
+        // Inscripcion cerrada: ya no se aceptan jugadores nuevos. El jugador
+        // existente entra (rama de arriba); el que no existe ve un error claro.
+        if (cfg.REGISTRATION_CLOSED) {
+          errEl.textContent = 'La inscripción a esta liga ya está cerrada. Revisá que el NOMBRE, APELLIDO y DNI estén exactamente como los cargaste al anotarte. Si seguís sin poder entrar, contactá al administrador de la liga.';
+          errEl.hidden = false;
+          return; // el finally reactiva el botón
+        }
         player = await DB.createPlayer({
           player_key: key, first_name: first, last_name: last, dni,
         });
@@ -818,6 +825,7 @@
     const ov = (window.PRODE_LEAGUE_OVERRIDES || {})[row.code] || {};
     if (ov.prizes) cfg.PRIZES = Object.assign({}, cfg.PRIZES, ov.prizes);
     cfg.PRIZES_FLYER = ov.prizesFlyer || null;
+    cfg.REGISTRATION_CLOSED = !!ov.registrationClosed;
     DB.setLeagueId(row.id);
   }
 
