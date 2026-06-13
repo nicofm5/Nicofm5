@@ -115,7 +115,7 @@ const MATCHES = [
 
   // ---------- Grupo D ----------
   { id: 'D1', group: 'D', kickoffUTC: '2026-06-13T01:00:00Z', city: 'Inglewood', stadium: 'SoFi Stadium', home: 'us', away: 'py' },
-  { id: 'D2', group: 'D', kickoffUTC: '2026-06-13T04:00:00Z', city: 'Vancouver', stadium: 'BC Place', home: 'au', away: 'tr' },
+  { id: 'D2', group: 'D', kickoffUTC: '2026-06-14T04:00:00Z', city: 'Vancouver', stadium: 'BC Place', home: 'au', away: 'tr' },
   { id: 'D3', group: 'D', kickoffUTC: '2026-06-19T19:00:00Z', city: 'Seattle', stadium: 'Lumen Field', home: 'us', away: 'au' },
   { id: 'D4', group: 'D', kickoffUTC: '2026-06-20T03:00:00Z', city: 'Santa Clara', stadium: "Levi's Stadium", home: 'tr', away: 'py' },
   { id: 'D5', group: 'D', kickoffUTC: '2026-06-26T02:00:00Z', city: 'Inglewood', stadium: 'SoFi Stadium', home: 'tr', away: 'us' },
