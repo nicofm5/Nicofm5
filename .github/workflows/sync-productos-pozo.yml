@@ -9,8 +9,10 @@ name: Sync resultados · Productos Pozo
 #   SUPABASE_URL_POZO         URL del Supabase de Productos Pozo
 #   SUPABASE_ANON_KEY_POZO    anon key del Supabase de Productos Pozo
 on:
-  schedule:
-    - cron: '5 * * * *'    # cada hora (5 min después de la liga general)
+  # Cron deshabilitado: el proyecto Supabase de "Productos Pozo" quedo pausado
+  # (la liga real corre en el hub, sync-hub.yml). El cron solo se mantiene
+  # disponible por workflow_dispatch para volver a usarlo manualmente si algun
+  # dia se despausa el proyecto.
   workflow_dispatch: {}
 
 jobs:
