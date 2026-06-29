@@ -167,35 +167,91 @@ h1, h2, h3, .display { font-family: 'Anton', 'Inter', sans-serif; font-weight: 4
 .winner-arrow { color: #c8d0e4; }
 
 /* ---------- Detalle de jugadas (breakdown) ---------- */
+/* Cabecera: total gigante + nombre del jugador + mini-podio */
+.bd-header { margin: 8px 0 20px; }
+.bd-total {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, rgba(52,152,219,.18), rgba(46,204,113,.18));
+  border: 2px solid rgba(255,255,255,.18);
+  border-radius: 18px; margin-bottom: 14px; text-align: center;
+}
+.bd-total.champion {
+  background: linear-gradient(135deg, rgba(247,200,0,.32), rgba(247,200,0,.12));
+  border-color: rgba(247,200,0,.7);
+  box-shadow: 0 10px 30px rgba(247,200,0,.18);
+}
+.bd-total-label {
+  font-size: 0.78rem; letter-spacing: 2.5px; color: #cfd6e6; font-weight: 700;
+}
+.bd-total-num {
+  font-family: 'Anton', sans-serif;
+  font-size: clamp(64px, 18vw, 110px); line-height: 1; color: #fff;
+  text-shadow: 0 6px 20px rgba(0,0,0,.45);
+  margin: 4px 0 6px;
+}
+.bd-total-extra { color: #c8d0e4; font-size: 0.95rem; }
+
+.bd-player {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.14);
+  border-radius: 14px; margin-bottom: 14px;
+}
+.bd-player-medal { font-size: 32px; line-height: 1; }
+.bd-player-info { display: flex; flex-direction: column; }
+.bd-player-name { font-size: 1.4rem; font-weight: 800; color: #fff; }
+.bd-player-rank { color: #ffe9a8; font-size: 0.9rem; font-weight: 600; }
+
+.bd-podium {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-bottom: 18px;
+}
+.bd-podium-slot {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 12px; padding: 10px 8px; gap: 2px;
+}
+.bd-podium-slot.current { background: rgba(247,200,0,.16); border-color: rgba(247,200,0,.55); }
+.bd-podium-medal { font-size: 22px; }
+.bd-podium-name { font-weight: 700; font-size: 0.85rem; color: #fff; }
+.bd-podium-pts { font-size: 0.8rem; color: #cfd6e6; }
+
+/* Filas de partido */
 .bd-group { margin-top: 16px; }
-.bd-rows { display: flex; flex-direction: column; gap: 8px; }
+.bd-rows { display: flex; flex-direction: column; gap: 10px; }
 .bd-row {
   background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
-  border-radius: 12px; padding: 10px 12px;
+  border-radius: 12px; padding: 12px 14px;
 }
-.bd-match { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; font-weight: 600; }
+.bd-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap;
+  padding-bottom: 10px; margin-bottom: 10px;
+  border-bottom: 1px dashed rgba(255,255,255,.15);
+}
+.bd-top-result { display: flex; flex-direction: column; gap: 2px; }
+.bd-val-result {
+  font-family: 'Anton', sans-serif; font-size: 1.4rem; color: #fff; letter-spacing: 1px;
+}
+.bd-match { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; font-weight: 600; }
 .bd-team { font-size: 0.95rem; }
 .bd-vs { color: #99a; font-size: 0.85rem; margin: 0 2px; }
-.bd-cells {
-  display: grid; grid-template-columns: 1fr 1fr auto;
-  gap: 8px; align-items: end;
-}
-.bd-cell { display: flex; flex-direction: column; gap: 2px; }
+.bd-pred { display: flex; flex-direction: column; gap: 2px; }
 .bd-label { font-size: 0.72rem; color: #aab2c5; text-transform: uppercase; letter-spacing: 0.5px; }
 .bd-val { font-size: 1rem; font-weight: 700; }
 .bd-empty { color: #888; font-weight: 500; font-size: 0.85rem; }
-.bd-cell-pts { align-self: center; }
 .bd-pts {
-  display: inline-block; padding: 4px 10px; border-radius: 999px;
-  font-size: 0.82rem; font-weight: 700;
+  display: inline-block; padding: 6px 14px; border-radius: 999px;
+  font-size: 0.88rem; font-weight: 800;
 }
-.bd-pts-2 { background: rgba(46,204,113,.22); border: 1px solid rgba(46,204,113,.55); color: #b8f5d2; }
-.bd-pts-1 { background: rgba(52,152,219,.22); border: 1px solid rgba(52,152,219,.55); color: #cfe6ff; }
-.bd-pts-0 { background: rgba(231,76,60,.18); border: 1px solid rgba(231,76,60,.5); color: #f7c3bd; }
+.bd-pts-2 { background: rgba(46,204,113,.28); border: 1px solid rgba(46,204,113,.65); color: #d4ffe2; }
+.bd-pts-1 { background: rgba(52,152,219,.28); border: 1px solid rgba(52,152,219,.65); color: #e3f1ff; }
+.bd-pts-0 { background: rgba(231,76,60,.22); border: 1px solid rgba(231,76,60,.55); color: #ffd0c9; }
 .bd-pts-pending { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); color: #c8d0e4; }
 @media (max-width: 460px) {
-  .bd-cells { grid-template-columns: 1fr 1fr; }
-  .bd-cell-pts { grid-column: 1 / -1; align-self: stretch; }
+  .bd-podium-name { font-size: 0.75rem; }
+  .bd-podium-pts { font-size: 0.72rem; }
+  .bd-player-name { font-size: 1.15rem; }
 }
 
 /* Flyer de premios de la liga (se muestra al ingresar si la liga define uno) */

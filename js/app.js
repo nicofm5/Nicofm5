@@ -478,10 +478,41 @@
       }
     }
 
-    $('#breakdownTitle').textContent = fullName;
-    const rankTxt = rank ? `${rank}° puesto · ` : '';
-    $('#breakdownSubtitle').textContent =
-      `${rankTxt}${totalPts} pts · ${totalHits} aciertos · ${totalExact} exactos`;
+    // Mini podio: nombres de los 3 ganadores (con el actual destacado).
+    const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+    let podiumHtml = '';
+    if (board && board.length) {
+      const top3 = board.filter((r) => r.points > 0).slice(0, 3);
+      if (top3.length) {
+        podiumHtml = `<div class="bd-podium">
+          ${top3.map((r) => `
+            <div class="bd-podium-slot ${r.player_key === player.player_key ? 'current' : ''}">
+              <span class="bd-podium-medal">${medals[r.rank] || ''}</span>
+              <span class="bd-podium-name">${escapeHtml(r.name)}</span>
+              <span class="bd-podium-pts">${r.points} pts</span>
+            </div>`).join('')}
+        </div>`;
+      }
+    }
+
+    const rankMedal = rank ? (medals[rank] || `${rank}°`) : '';
+    const rankLabel = rank
+      ? (rank === 1 ? '1° puesto' : rank === 2 ? '2° puesto' : rank === 3 ? '3° puesto' : `${rank}° puesto`)
+      : '';
+    $('#breakdownHeader').innerHTML = `
+      <div class="bd-total ${rank === 1 ? 'champion' : ''}">
+        <span class="bd-total-label">PUNTOS SUMADOS</span>
+        <span class="bd-total-num">${totalPts}</span>
+        <span class="bd-total-extra">${totalHits} aciertos · ${totalExact} marcadores exactos</span>
+      </div>
+      <div class="bd-player">
+        ${rankMedal ? `<span class="bd-player-medal">${rankMedal}</span>` : ''}
+        <div class="bd-player-info">
+          <span class="bd-player-name">${escapeHtml(fullName)}</span>
+          ${rankLabel ? `<span class="bd-player-rank">${rankLabel}</span>` : ''}
+        </div>
+      </div>
+      ${podiumHtml}`;
 
     const groupLetters = Object.keys(GROUPS);
     const html = groupLetters.map((g) => {
@@ -493,14 +524,22 @@
         const hasRes = res && res.h != null && res.a != null;
         const pts = hasRes ? pointsForMatch(pred, res) : null;
         let scoreBadge;
-        if (pts === 2) scoreBadge = '<span class="bd-pts bd-pts-2">+2 pts</span>';
-        else if (pts === 1) scoreBadge = '<span class="bd-pts bd-pts-1">+1 pt</span>';
+        if (pts === 2) scoreBadge = '<span class="bd-pts bd-pts-2">+2 pts (exacto)</span>';
+        else if (pts === 1) scoreBadge = '<span class="bd-pts bd-pts-1">+1 pt (ganador)</span>';
         else if (pts === 0) scoreBadge = '<span class="bd-pts bd-pts-0">0 pts</span>';
         else scoreBadge = '<span class="bd-pts bd-pts-pending">sin resultado</span>';
         const predStr = hasPred ? `${pred.h} - ${pred.a}` : '<span class="bd-empty">no cargó</span>';
         const resStr  = hasRes  ? `${res.h} - ${res.a}`  : '<span class="bd-empty">—</span>';
         return `
           <div class="bd-row">
+            <!-- Arriba del partido: resultado oficial + puntos sumados -->
+            <div class="bd-top">
+              <div class="bd-top-result">
+                <span class="bd-label">Resultado</span>
+                <span class="bd-val bd-val-result">${resStr}</span>
+              </div>
+              <div class="bd-top-pts">${scoreBadge}</div>
+            </div>
             <div class="bd-match">
               <img class="flag-xs" src="${flagUrl(m.home, 40)}" alt="" />
               <span class="bd-team">${escapeHtml(teamName(m.home))}</span>
@@ -508,10 +547,9 @@
               <span class="bd-team">${escapeHtml(teamName(m.away))}</span>
               <img class="flag-xs" src="${flagUrl(m.away, 40)}" alt="" />
             </div>
-            <div class="bd-cells">
-              <div class="bd-cell"><span class="bd-label">Pronóstico</span><span class="bd-val">${predStr}</span></div>
-              <div class="bd-cell"><span class="bd-label">Resultado</span><span class="bd-val">${resStr}</span></div>
-              <div class="bd-cell bd-cell-pts">${scoreBadge}</div>
+            <div class="bd-pred">
+              <span class="bd-label">Pronóstico cargado</span>
+              <span class="bd-val">${predStr}</span>
             </div>
           </div>`;
       }).join('');
@@ -1165,10 +1203,16 @@
     $('#backFromTicket').addEventListener('click', () => { renderGroups(); showView('fixture'); });
     const myBd = $('#myBreakdownBtn');
     if (myBd) myBd.addEventListener('click', async () => {
-      // Refrescamos resultados por si entraron nuevos desde el último render.
-      try { state.results = await DB.getResults(); } catch (e) { /* mantenemos los que tenemos */ }
+      // Refrescamos resultados + ranking completo para poder mostrar el podio
+      // de los ganadores arriba (asi el jugador ve donde quedo).
+      let players = [];
+      try {
+        const r = await Promise.all([DB.getResults(), DB.getAllPlayers()]);
+        state.results = r[0]; players = r[1];
+      } catch (e) { /* mantenemos los datos previos */ }
+      const board = players.length ? buildLeaderboard(players, state.results || {}) : null;
       breakdownReturnTo = 'fixture';
-      renderBreakdown(state.player, state.results || {}, null);
+      renderBreakdown(state.player, state.results || {}, board);
       showView('breakdown');
     });
     const backBd = $('#backFromBreakdown');
