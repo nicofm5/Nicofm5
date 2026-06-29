@@ -162,6 +162,7 @@
     $('#logoutBtn').hidden = true;
     $('#loginForm').reset();
     showView('welcome');
+    loadAndRenderWinners(); // refresca el top 3 al volver al welcome tras salir
   }
 
   // ============================================================================
@@ -410,6 +411,116 @@
         <span>${ids.length} pronóstico(s)</span>
         <span class="muted">¡Mucha suerte! 🏆</span>
       </div>`;
+  }
+
+  // ============================================================================
+  // GANADORES (bienvenida) + DETALLE DE JUGADAS CON PUNTOS
+  // ============================================================================
+  // De dónde volver al cerrar el breakdown: 'welcome' (visitante no logueado) o
+  // 'fixture' (jugador que abrió "Ver mis puntos" desde el editor).
+  let breakdownReturnTo = 'welcome';
+
+  // Top 3 del ranking (solo se muestra cuando hay al menos un partido con
+  // resultado oficial cargado). Cada fila es clicable y abre el desglose.
+  async function loadAndRenderWinners() {
+    const card = $('#winnersCard'), list = $('#winnersList');
+    if (!card || !list) return;
+    try {
+      const [players, results] = await Promise.all([DB.getAllPlayers(), DB.getResults()]);
+      state.results = results;
+      if (!Object.keys(results).length || !players.length) { card.hidden = true; return; }
+      const board = buildLeaderboard(players, results);
+      const top3 = board.filter((r) => r.points > 0).slice(0, 3);
+      if (!top3.length) { card.hidden = true; return; }
+      const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+      const playersByKey = {};
+      players.forEach((p) => { playersByKey[p.player_key] = p; });
+      list.innerHTML = top3.map((r) => `
+        <button type="button" class="winner-row top-${r.rank}" data-key="${escapeHtml(r.player_key)}">
+          <span class="winner-medal">${medals[r.rank] || ''}</span>
+          <span class="winner-pos">${r.rank}°</span>
+          <span class="winner-name">${escapeHtml(r.name)}</span>
+          <span class="winner-pts"><strong>${r.points}</strong> pts</span>
+          <span class="winner-arrow">→</span>
+        </button>`).join('');
+      list.querySelectorAll('.winner-row').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const p = playersByKey[btn.dataset.key];
+          if (!p) return;
+          breakdownReturnTo = 'welcome';
+          renderBreakdown(p, state.results || {}, board);
+          showView('breakdown');
+        });
+      });
+      card.hidden = false;
+    } catch (e) {
+      console.warn('No se pudieron cargar los ganadores:', e.message);
+      card.hidden = true;
+    }
+  }
+
+  // Vista de jugadas detalladas: cada partido con la jugada del jugador, el
+  // resultado oficial y los puntos sumados en ese partido.
+  function renderBreakdown(player, results, board) {
+    const preds = player.predictions || {};
+    const fullName = `${player.first_name} ${player.last_name}`.trim();
+    let totalPts = 0, totalHits = 0, totalExact = 0, rank = null;
+    if (board) {
+      const row = board.find((r) => r.player_key === player.player_key);
+      if (row) { totalPts = row.points; totalHits = row.hits; totalExact = row.exact; rank = row.rank; }
+    } else {
+      // Si no nos pasaron el board, lo calculamos sobre la marcha (caso "Ver mis puntos").
+      for (const id of Object.keys(results)) {
+        const pts = pointsForMatch(preds[id], results[id]);
+        totalPts += pts;
+        if (pts >= 1) totalHits += 1;
+        if (pts === 2) totalExact += 1;
+      }
+    }
+
+    $('#breakdownTitle').textContent = fullName;
+    const rankTxt = rank ? `${rank}° puesto · ` : '';
+    $('#breakdownSubtitle').textContent =
+      `${rankTxt}${totalPts} pts · ${totalHits} aciertos · ${totalExact} exactos`;
+
+    const groupLetters = Object.keys(GROUPS);
+    const html = groupLetters.map((g) => {
+      const matches = MATCHES.filter((m) => m.group === g);
+      const rows = matches.map((m) => {
+        const pred = preds[m.id];
+        const res = results[m.id];
+        const hasPred = pred && pred.h != null && pred.a != null;
+        const hasRes = res && res.h != null && res.a != null;
+        const pts = hasRes ? pointsForMatch(pred, res) : null;
+        let scoreBadge;
+        if (pts === 2) scoreBadge = '<span class="bd-pts bd-pts-2">+2 pts</span>';
+        else if (pts === 1) scoreBadge = '<span class="bd-pts bd-pts-1">+1 pt</span>';
+        else if (pts === 0) scoreBadge = '<span class="bd-pts bd-pts-0">0 pts</span>';
+        else scoreBadge = '<span class="bd-pts bd-pts-pending">sin resultado</span>';
+        const predStr = hasPred ? `${pred.h} - ${pred.a}` : '<span class="bd-empty">no cargó</span>';
+        const resStr  = hasRes  ? `${res.h} - ${res.a}`  : '<span class="bd-empty">—</span>';
+        return `
+          <div class="bd-row">
+            <div class="bd-match">
+              <img class="flag-xs" src="${flagUrl(m.home, 40)}" alt="" />
+              <span class="bd-team">${escapeHtml(teamName(m.home))}</span>
+              <span class="bd-vs">vs</span>
+              <span class="bd-team">${escapeHtml(teamName(m.away))}</span>
+              <img class="flag-xs" src="${flagUrl(m.away, 40)}" alt="" />
+            </div>
+            <div class="bd-cells">
+              <div class="bd-cell"><span class="bd-label">Pronóstico</span><span class="bd-val">${predStr}</span></div>
+              <div class="bd-cell"><span class="bd-label">Resultado</span><span class="bd-val">${resStr}</span></div>
+              <div class="bd-cell bd-cell-pts">${scoreBadge}</div>
+            </div>
+          </div>`;
+      }).join('');
+      return `<section class="group bd-group">
+        <h3 class="group-title">Grupo ${g}</h3>
+        <div class="bd-rows">${rows}</div>
+      </section>`;
+    }).join('');
+    $('#breakdownContainer').innerHTML = html;
   }
 
   // ============================================================================
@@ -1052,6 +1163,19 @@
     });
     $('#printBtn').addEventListener('click', () => window.print());
     $('#backFromTicket').addEventListener('click', () => { renderGroups(); showView('fixture'); });
+    const myBd = $('#myBreakdownBtn');
+    if (myBd) myBd.addEventListener('click', async () => {
+      // Refrescamos resultados por si entraron nuevos desde el último render.
+      try { state.results = await DB.getResults(); } catch (e) { /* mantenemos los que tenemos */ }
+      breakdownReturnTo = 'fixture';
+      renderBreakdown(state.player, state.results || {}, null);
+      showView('breakdown');
+    });
+    const backBd = $('#backFromBreakdown');
+    if (backBd) backBd.addEventListener('click', () => {
+      if (breakdownReturnTo === 'fixture' && state.player) { renderGroups(); showView('fixture'); }
+      else { showView('welcome'); loadAndRenderWinners(); }
+    });
     $('#adminForm').addEventListener('submit', handleAdminLogin);
 
     // Crear liga (self-service)
@@ -1116,6 +1240,7 @@
       } catch (e) { console.warn('No se pudo restaurar la sesión:', e.message); }
     }
     showView('welcome');
+    loadAndRenderWinners(); // dispara la carga del top 3 si hay resultados
   }
 
   document.addEventListener('DOMContentLoaded', init);

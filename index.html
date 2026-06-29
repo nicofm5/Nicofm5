@@ -99,6 +99,13 @@
           <p class="error" id="loginError" hidden></p>
         </form>
       </div>
+      <!-- Ganadores del Mundial (visible al terminar el torneo) -->
+      <div class="card winners-card" id="winnersCard" hidden>
+        <h2>🏆 Ganadores del Mundial</h2>
+        <p class="muted">Tocá un ganador para ver todas sus jugadas y los puntos que sumó.</p>
+        <div class="winners-list" id="winnersList"></div>
+      </div>
+
       <div class="card rules-card">
         <h2>📋 Cómo se juega</h2>
         <ol class="rules-list">
@@ -200,6 +207,7 @@
       <div class="action-bar" id="actionBar">
         <button class="btn primary" id="saveDraftBtn">Guardar pronósticos</button>
         <button class="btn ghost" id="ticketBtn">Ver mi ticket</button>
+        <button class="btn ghost" id="myBreakdownBtn">Ver mis puntos</button>
         <span class="save-status" id="saveStatus"></span>
       </div>
     </section>
@@ -211,6 +219,16 @@
         <button class="btn ghost" id="backFromTicket">Volver</button>
       </div>
       <div id="ticket" class="ticket"></div>
+    </section>
+
+    <!-- ===================== Detalle de jugadas con puntos (propio o de un ganador) ===================== -->
+    <section id="view-breakdown" class="view" hidden>
+      <div class="view-head">
+        <button class="btn ghost" id="backFromBreakdown">← Volver</button>
+        <h2 id="breakdownTitle">Jugadas</h2>
+        <p class="muted" id="breakdownSubtitle"></p>
+      </div>
+      <div id="breakdownContainer"></div>
     </section>
 
     <!-- ===================== Ranking ===================== -->
