@@ -167,10 +167,11 @@ row += 1
 style_section_header(ws1, row, "COMO LEER ESTE LIBRO", 6)
 row += 1
 notas = [
-    "Pestana 2 (Matriz Financiera): todas las celdas de costo total y costo de Nicolas son FORMULAS activas de Excel. Las celdas resaltadas en amarillo son estimaciones editables.",
-    "Pestana 3 (Itinerario Flash): cruce dia a dia de actividades con los horarios reales de vuelo.",
-    "Pestana 4 (Logistica): tabla de vuelos reales (PNR ETPWSR / booking B4ZHG8) y analisis de alquiler de minivan en Miami.",
-    "Pestana 5 (Guia Operativa): tips practicos y la formula de control del presupuesto total del grupo.",
+    "Pestana 2 (Matriz Financiera): presupuesto PROYECTADO segun lo ya reservado/facturado. Todas las celdas de costo total y costo de Nicolas son FORMULAS activas de Excel. Las celdas resaltadas en amarillo son estimaciones editables.",
+    "Pestana 3 (Registro de Gastos): hoja de carga MANUAL para que Nico anote los gastos reales dia a dia (Uber, comidas, compras, etc.). Los totales por nucleo se calculan solos con formulas.",
+    "Pestana 4 (Itinerario Flash): calendario dia a dia con horarios reales de vuelo y estado Confirmado / Por organizar de cada actividad.",
+    "Pestana 5 (Logistica): tabla de vuelos reales (PNR ETPWSR / booking B4ZHG8) y analisis de alquiler de minivan en Miami.",
+    "Pestana 6 (Guia Operativa): tips practicos y la formula de control del presupuesto total del grupo.",
 ]
 for n in notas:
     ws1.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
@@ -393,18 +394,198 @@ row += 1
 ws2.cell(row=row, column=1, value="Costo Nico = Nucleo 3 USD / 2 (formula activa, Nicolas paga exactamente la mitad del nucleo).").font = BODY_FONT
 
 # ===========================================================================
-# PESTANA 3: ITINERARIO FLASH
+# PESTANA 3: REGISTRO DE GASTOS (carga manual, dia a dia, a cargo de Nico)
+# ===========================================================================
+ws2b = wb.create_sheet("Registro de Gastos")
+ws2b.sheet_view.showGridLines = False
+widths2b = {"A": 13, "B": 20, "C": 34, "D": 15, "E": 16, "F": 14, "G": 30}
+for col, w in widths2b.items():
+    ws2b.column_dimensions[col].width = w
+
+style_title_row(ws2b, 1, "REGISTRO DE GASTOS - CARGA MANUAL (NICO)", 7, height=30)
+row = 2
+ws2b.merge_cells(f"A{row}:G{row}")
+c = ws2b.cell(row=row, column=1, value=(
+    "Esta hoja es de uso exclusivo de Nico: anotar aca cada gasto real a medida que ocurre en el viaje "
+    "(Uber, comidas, compras, propinas, etc.). Es independiente de la Matriz Financiera (que refleja lo ya "
+    "reservado/facturado). Los totales de abajo se recalculan solos con formulas."
+))
+c.font = Font(italic=True, size=10)
+c.alignment = WRAP_TOP
+c.fill = LIGHT_FILL
+ws2b.row_dimensions[row].height = 34
+row += 2
+
+headers2b = ["Fecha", "Categoria", "Descripcion", "Nucleo", "Pagado por", "Monto USD", "Notas"]
+header_row_2b = row
+for j, h in enumerate(headers2b, start=1):
+    cell = ws2b.cell(row=row, column=j, value=h)
+    cell.font = H2_FONT
+    cell.fill = SUBHEADER_FILL
+    cell.alignment = CENTER
+    cell.border = BOX
+ws2b.row_dimensions[row].height = 18
+ws2b.freeze_panes = f"A{row + 1}"
+row += 1
+gasto_first_row = row
+
+N_BLANK_ROWS = 60
+for i in range(N_BLANK_ROWS):
+    for col in range(1, 8):
+        cell = ws2b.cell(row=row, column=col)
+        cell.border = BOX
+        cell.font = BODY_FONT
+        if col == 6:
+            cell.number_format = USD
+        if (i % 2) == 0:
+            cell.fill = STRIPE_FILL
+    ws2b.row_dimensions[row].height = 16
+    row += 1
+gasto_last_row = row - 1
+
+# Primer gasto real ya avisado por Nico: sena de $200 pagada con tarjeta Santander Rio.
+# Fecha/reserva exacta a confirmar (hay dos senas de $200: Universal 63W124U2 y Disney #43028783).
+ws2b.cell(row=gasto_first_row, column=1, value="A confirmar")
+ws2b.cell(row=gasto_first_row, column=3, value="Sena de reserva (confirmar si es Universal 63W124U2 o Disney #43028783 - ambas por $200)")
+ws2b.cell(row=gasto_first_row, column=5, value="Nicolas - Tarjeta credito Santander Rio")
+ws2b.cell(row=gasto_first_row, column=6, value=200)
+ws2b.cell(row=gasto_first_row, column=7, value="Cargado por Claude a pedido de Nico; confirmar fecha exacta y a que reserva corresponde.")
+for col in (1, 3, 5, 7):
+    ws2b.cell(row=gasto_first_row, column=col).alignment = WRAP_TOP
+
+# Data validation: Categoria y Nucleo como listas desplegables
+from openpyxl.worksheet.datavalidation import DataValidation
+
+categoria_list = '"Vuelos,Disney,Universal,Hospedaje Miami,Auto/Transporte,Comida,Compras,Seguro,Propinas,Otro"'
+dv_cat = DataValidation(type="list", formula1=categoria_list, allow_blank=True, showDropDown=False)
+ws2b.add_data_validation(dv_cat)
+dv_cat.add(f"B{gasto_first_row}:B{gasto_last_row}")
+
+nucleo_list = '"Nucleo 1,Nucleo 2,Nucleo 3,Compartido/Todos"'
+dv_nuc = DataValidation(type="list", formula1=nucleo_list, allow_blank=True, showDropDown=False)
+ws2b.add_data_validation(dv_nuc)
+dv_nuc.add(f"D{gasto_first_row}:D{gasto_last_row}")
+
+row += 1
+style_section_header(ws2b, row, "RESUMEN AUTOMATICO (se calcula solo a medida que cargas filas arriba)", 7)
+row += 1
+rango_nucleo = f"$D${gasto_first_row}:$D${gasto_last_row}"
+rango_monto = f"$F${gasto_first_row}:$F${gasto_last_row}"
+resumen_labels = [
+    ("Total Nucleo 1", f'=SUMIF({rango_nucleo},"Nucleo 1",{rango_monto})'),
+    ("Total Nucleo 2", f'=SUMIF({rango_nucleo},"Nucleo 2",{rango_monto})'),
+    ("Total Nucleo 3", f'=SUMIF({rango_nucleo},"Nucleo 3",{rango_monto})'),
+    ("Total Compartido/Todos", f'=SUMIF({rango_nucleo},"Compartido/Todos",{rango_monto})'),
+]
+resumen_n3_row = None
+for label, formula in resumen_labels:
+    ws2b.cell(row=row, column=1, value=label).font = BODY_BOLD
+    fcell = ws2b.cell(row=row, column=2, value=formula)
+    fcell.number_format = USD
+    fcell.font = BODY_BOLD
+    if label == "Total Nucleo 3":
+        resumen_n3_row = row
+    for col in range(1, 8):
+        ws2b.cell(row=row, column=col).border = BOX
+    ws2b.row_dimensions[row].height = 16
+    row += 1
+
+ws2b.cell(row=row, column=1, value="Costo Nico (50% Nucleo 3)").font = BODY_BOLD
+nico_cell = ws2b.cell(row=row, column=2, value=f"=B{resumen_n3_row}/2")
+nico_cell.number_format = USD
+nico_cell.font = BODY_BOLD
+for col in range(1, 8):
+    ws2b.cell(row=row, column=col).border = BOX
+ws2b.row_dimensions[row].height = 16
+row += 1
+
+ws2b.cell(row=row, column=1, value="TOTAL REGISTRADO").font = Font(bold=True, size=11)
+total_gastos_cell = ws2b.cell(row=row, column=2, value=f"=SUM({rango_monto})")
+total_gastos_cell.number_format = USD
+total_gastos_cell.font = Font(bold=True, size=11)
+for col in range(1, 8):
+    ws2b.cell(row=row, column=col).fill = TOTAL_FILL
+    ws2b.cell(row=row, column=col).border = BOX
+ws2b.row_dimensions[row].height = 20
+row += 3
+
+style_section_header(ws2b, row, "DEUDAS ENTRE PERSONAS (adelantos de un integrante a nombre de otros)", 7)
+row += 1
+headers_deudas = ["Concepto", "Adelanto pagado por", "A cargo de", "Monto USD", "Estado"]
+for j, h in enumerate(headers_deudas, start=1):
+    cell = ws2b.cell(row=row, column=j, value=h)
+    cell.font = H2_FONT
+    cell.fill = SUBHEADER_FILL
+    cell.alignment = CENTER
+    cell.border = BOX
+ws2b.merge_cells(start_row=row, start_column=5, end_row=row, end_column=7)
+ws2b.row_dimensions[row].height = 18
+row += 1
+
+deudas = [
+    (
+        "Universal Dockside (reserva conjunta 63W124U2: Florencia, German, Natalia, Nicolas)",
+        "German Agullo (pago la reserva completa)",
+        "Nicolas y Natalia (Nucleo 3) le deben a German la mitad de esta reserva + lo que falte pagar",
+        "='Matriz Financiera'!F6",
+        "Pendiente de liquidar con German",
+    ),
+    (
+        "Disney Art of Animation (reserva #43028783: Natalia, Nicolas)",
+        "Nicolas y Natalia (pagan directo, sin intermediario)",
+        "N/A - no genera deuda entre personas",
+        "='Matriz Financiera'!F5",
+        "Gestionado directamente por Nucleo 3",
+    ),
+]
+for concepto, adelanto, cargo, monto_formula, estado in deudas:
+    ws2b.cell(row=row, column=1, value=concepto).font = BODY_FONT
+    ws2b.cell(row=row, column=1).alignment = WRAP_TOP
+    ws2b.cell(row=row, column=2, value=adelanto).font = BODY_FONT
+    ws2b.cell(row=row, column=2).alignment = WRAP_TOP
+    ws2b.cell(row=row, column=3, value=cargo).font = BODY_FONT
+    ws2b.cell(row=row, column=3).alignment = WRAP_TOP
+    monto_cell = ws2b.cell(row=row, column=4, value=monto_formula)
+    monto_cell.number_format = USD
+    monto_cell.font = BODY_BOLD
+    ws2b.merge_cells(start_row=row, start_column=5, end_row=row, end_column=7)
+    estado_cell = ws2b.cell(row=row, column=5, value=estado)
+    estado_cell.font = Font(italic=True, size=9.5)
+    estado_cell.alignment = WRAP_TOP
+    for col in range(1, 8):
+        ws2b.cell(row=row, column=col).border = BOX
+    ws2b.row_dimensions[row].height = 40
+    row += 1
+
+row += 1
+ws2b.merge_cells(start_row=row, start_column=1, end_row=row, end_column=7)
+nota_deudas = ws2b.cell(row=row, column=1, value=(
+    "El monto de la fila Universal esta enlazado por formula a la Matriz Financiera (Nucleo 3 = mitad de la "
+    "reserva conjunta 63W124U2). Incluye la sena ya pagada y el saldo que falte liquidar con German a medida "
+    "que se vaya pagando la reserva completa."
+))
+nota_deudas.font = Font(italic=True, size=9.5)
+nota_deudas.alignment = WRAP_TOP
+ws2b.row_dimensions[row].height = 30
+
+# ===========================================================================
+# PESTANA 4: ITINERARIO FLASH (calendario dia a dia)
 # ===========================================================================
 ws3 = wb.create_sheet("Itinerario Flash")
 ws3.sheet_view.showGridLines = False
 ws3.column_dimensions["A"].width = 14
-ws3.column_dimensions["B"].width = 16
-ws3.column_dimensions["C"].width = 60
-ws3.column_dimensions["D"].width = 55
+ws3.column_dimensions["B"].width = 12
+ws3.column_dimensions["C"].width = 15
+ws3.column_dimensions["D"].width = 52
+ws3.column_dimensions["E"].width = 15
+ws3.column_dimensions["F"].width = 48
 
-style_title_row(ws3, 1, "ITINERARIO FLASH - FEBRERO 2027", 4, height=30)
+CONFIRMADO_FILL = PatternFill("solid", fgColor="E2EFDA")
+PENDIENTE_FILL = PatternFill("solid", fgColor="FFF2CC")
+
+style_title_row(ws3, 1, "ITINERARIO FLASH - CALENDARIO FEBRERO 2027", 6, height=30)
 row = 3
-headers3 = ["Fecha", "Momento del dia", "Actividad / Lugar", "Tip pragmatico"]
+headers3 = ["Fecha", "Hora", "Momento del dia", "Actividad / Lugar", "Estado", "Tip pragmatico"]
 for j, h in enumerate(headers3, start=1):
     cell = ws3.cell(row=row, column=j, value=h)
     cell.font = H2_FONT
@@ -415,54 +596,69 @@ ws3.row_dimensions[row].height = 18
 ws3.freeze_panes = f"A{row + 1}"
 row += 1
 
+CONF = "Confirmado"
+PEND = "Por organizar"
+
 itinerario = [
-    ("05-feb (vie)", "Madrugada/Manana", "Vuelo AA982 EZE -> MIA (10:10 a 17:20)", "Check-in online 24h antes; llegar a EZE con 3h de anticipacion por ser vuelo internacional B1/B2."),
-    ("05-feb (vie)", "Tarde/Noche", "Conexion AA1856 MIA -> MCO (18:56 a 20:15)", "Conexion corta (1h36) dentro del mismo aeropuerto MIA; no hace falta retirar equipaje si esta chequeado hasta MCO."),
-    ("05-feb (vie)", "Noche", "Llegada a Orlando -> Check-in Disney's Art of Animation", "Traslado en 2 UberXL (7 pax + 21 bultos); pedir con anticipacion por horario nocturno."),
-    ("06-feb (sab)", "Todo el dia", "Parque Disney 1", "Comprar Lightning Lane Multi Pass apenas abre la app a las 7am."),
-    ("07-feb (dom)", "Todo el dia", "Parque Disney 2", "Reservar restaurante con Advance Dining Reservation si se sale del Quick-Service."),
-    ("08-feb (lun)", "Todo el dia", "Parque Disney 3", "Dia de mayor concurrencia -> priorizar atracciones top apenas abre el parque."),
-    ("09-feb (mar)", "Todo el dia", "Parque Disney 4", "Aprovechar Extra Magic Hours si el hotel las tiene habilitadas ese dia."),
-    ("10-feb (mie)", "Todo el dia", "Parque Disney 5", "Guardar el ultimo dia de ticket Disney para el parque favorito del grupo."),
-    ("11-feb (jue)", "Todo el dia", "Descanso / Compras en Orlando International Premium Outlets", "Uber compartido con otras familias del resort para bajar el costo del traslado."),
-    ("12-feb (vie)", "Manana", "Check-out Disney -> Check-in Universal Dockside Inn", "Guardar equipaje en Bell Services de Disney si el check-in de Universal es mas tarde."),
-    ("12-feb (vie)", "Tarde", "Early Park Admission Universal (segun ticket)", "Usar el transporte gratuito del hotel Dockside en vez de Uber."),
-    ("13-feb (sab)", "Todo el dia", "Universal Epic Universe", "Llegar 45 min antes de la apertura general por controles de seguridad reforzados."),
-    ("14-feb (dom)", "Todo el dia", "Universal's Islands of Adventure", "Ir directo a VelociCoaster apenas abre el parque."),
-    ("15-feb (lun)", "Todo el dia", "Dia libre / Compras", "Aprovechar para lavar ropa; la mayoria de los Dockside tienen lavanderia self-service."),
-    ("16-feb (mar)", "Todo el dia", "Universal Studios Florida", "Usar el Hogwarts Express (Park-to-Park) para moverse entre parques sin volver a la entrada."),
-    ("17-feb (mie)", "Manana", "Check-out Universal -> 2 UberXL a MCO", "Salir con margen: 21 bultos de equipaje hacen mas lento el check-in en el aeropuerto domestico."),
-    ("17-feb (mie)", "Manana", "Vuelo AA1741 MCO -> MIA (10:00 a 11:20)", "Vuelo corto domestico; despachar valijas grandes igual (no entran como carry-on)."),
-    ("17-feb (mie)", "Mediodia/Tarde", "Llegada Miami -> Check-in departamento Hollywood Beach + retiro de minivan", "Retirar la minivan (Chrysler Pacifica/Kia Carnival) directo en el aeropuerto MIA para evitar un traslado extra."),
-    ("18-feb (jue)", "Todo el dia", "Hollywood Beach - playa y Broadwalk", "Comprar en Publix o Walmart apenas se llega para no depender de delivery los primeros dias."),
-    ("19-feb (vie)", "Todo el dia", "Dia libre Miami / Excursion opcional", "Cargar SunPass antes de salir a la ruta para evitar recargos por peaje sin transponder."),
-    ("20-feb (sab)", "Todo el dia", "Miami - paseo urbano (Wynwood / South Beach)", "Estacionamiento pago en South Beach; verificar tarifa horaria antes de dejar la minivan."),
-    ("21-feb (dom)", "Todo el dia", "Ultimo dia libre + preparar valijas", "Revisar franquicia de equipaje del vuelo internacional (distinta a la domestica) antes de repartir compras."),
-    ("22-feb (lun)", "Tarde", "Check-out departamento + devolucion minivan en MIA", "Devolver el tanque lleno para evitar el cargo de combustible de la rentadora."),
-    ("22-feb (lun)", "Noche", "Vuelo AA931 MIA -> EZE (20:15, llega 07:25 del 23-feb)", "Llegar a MIA con 3.5h de anticipacion por ser vuelo internacional con 7 pasajeros y equipaje voluminoso."),
+    ("05-feb (vie)", "10:10", "Manana", "Vuelo AA982 EZE -> MIA (10:10 a 17:20)", CONF, "Check-in online 24h antes; llegar a EZE con 3h de anticipacion por ser vuelo internacional B1/B2."),
+    ("05-feb (vie)", "18:56", "Tarde/Noche", "Conexion AA1856 MIA -> MCO (18:56 a 20:15)", CONF, "Conexion corta (1h36) dentro del mismo aeropuerto MIA; no hace falta retirar equipaje si esta chequeado hasta MCO."),
+    ("05-feb (vie)", "20:15", "Noche", "Llegada a Orlando -> Check-in Disney's Art of Animation", CONF, "Traslado en 2 UberXL (7 pax + 21 bultos); pedir con anticipacion por horario nocturno."),
+    ("06-feb (sab)", "-", "Todo el dia", "Parque Disney 1", CONF, "Comprar Lightning Lane Multi Pass apenas abre la app a las 7am."),
+    ("07-feb (dom)", "-", "Todo el dia", "Parque Disney 2", CONF, "Reservar restaurante con Advance Dining Reservation si se sale del Quick-Service."),
+    ("08-feb (lun)", "-", "Todo el dia", "Parque Disney 3", CONF, "Dia de mayor concurrencia -> priorizar atracciones top apenas abre el parque."),
+    ("09-feb (mar)", "-", "Todo el dia", "Parque Disney 4", CONF, "Aprovechar Extra Magic Hours si el hotel las tiene habilitadas ese dia."),
+    ("10-feb (mie)", "-", "Todo el dia", "Parque Disney 5", CONF, "Guardar el ultimo dia de ticket Disney para el parque favorito del grupo."),
+    ("11-feb (jue)", "-", "Todo el dia", "Descanso / Compras en Orlando International Premium Outlets", PEND, "Uber compartido con otras familias del resort para bajar el costo del traslado."),
+    ("12-feb (vie)", "11:00", "Manana", "Check-out Disney -> Check-in Universal Dockside Inn", CONF, "Guardar equipaje en Bell Services de Disney si el check-in de Universal es mas tarde."),
+    ("12-feb (vie)", "-", "Tarde", "Early Park Admission Universal (segun ticket)", CONF, "Usar el transporte gratuito del hotel Dockside en vez de Uber."),
+    ("13-feb (sab)", "-", "Todo el dia", "Universal Epic Universe", CONF, "Llegar 45 min antes de la apertura general por controles de seguridad reforzados."),
+    ("14-feb (dom)", "-", "Todo el dia", "Universal's Islands of Adventure", CONF, "Ir directo a VelociCoaster apenas abre el parque."),
+    ("15-feb (lun)", "-", "Todo el dia", "Dia libre / Compras", PEND, "Aprovechar para lavar ropa; la mayoria de los Dockside tienen lavanderia self-service."),
+    ("16-feb (mar)", "-", "Todo el dia", "Universal Studios Florida", CONF, "Usar el Hogwarts Express (Park-to-Park) para moverse entre parques sin volver a la entrada."),
+    ("17-feb (mie)", "-", "Manana", "Check-out Universal -> 2 UberXL a MCO", CONF, "Salir con margen: 21 bultos de equipaje hacen mas lento el check-in en el aeropuerto domestico."),
+    ("17-feb (mie)", "10:00", "Manana", "Vuelo AA1741 MCO -> MIA (10:00 a 11:20)", CONF, "Vuelo corto domestico; despachar valijas grandes igual (no entran como carry-on)."),
+    ("17-feb (mie)", "11:20", "Mediodia/Tarde", "Llegada Miami -> Check-in departamento Hollywood Beach + retiro de minivan", PEND, "Retirar la minivan (Chrysler Pacifica/Kia Carnival) directo en el aeropuerto MIA para evitar un traslado extra."),
+    ("18-feb (jue)", "-", "Todo el dia", "Hollywood Beach - playa y Broadwalk", PEND, "Comprar en Publix o Walmart apenas se llega para no depender de delivery los primeros dias."),
+    ("19-feb (vie)", "-", "Todo el dia", "Dia libre Miami / Excursion opcional", PEND, "Cargar SunPass antes de salir a la ruta para evitar recargos por peaje sin transponder."),
+    ("20-feb (sab)", "-", "Todo el dia", "Miami - paseo urbano (Wynwood / South Beach)", PEND, "Estacionamiento pago en South Beach; verificar tarifa horaria antes de dejar la minivan."),
+    ("21-feb (dom)", "-", "Todo el dia", "Ultimo dia libre + preparar valijas", PEND, "Revisar franquicia de equipaje del vuelo internacional (distinta a la domestica) antes de repartir compras."),
+    ("22-feb (lun)", "-", "Tarde", "Check-out departamento + devolucion minivan en MIA", PEND, "Devolver el tanque lleno para evitar el cargo de combustible de la rentadora."),
+    ("22-feb (lun)", "20:15", "Noche", "Vuelo AA931 MIA -> EZE (20:15, llega 07:25 del 23-feb)", CONF, "Llegar a MIA con 3.5h de anticipacion por ser vuelo internacional con 7 pasajeros y equipaje voluminoso."),
 ]
 
-for fecha, momento, actividad, tip in itinerario:
+for fecha, hora, momento, actividad, estado, tip in itinerario:
     ws3.cell(row=row, column=1, value=fecha).font = BODY_BOLD
-    ws3.cell(row=row, column=2, value=momento).font = BODY_FONT
-    a = ws3.cell(row=row, column=3, value=actividad)
+    ws3.cell(row=row, column=2, value=hora).font = BODY_FONT
+    ws3.cell(row=row, column=2).alignment = CENTER
+    ws3.cell(row=row, column=3, value=momento).font = BODY_FONT
+    a = ws3.cell(row=row, column=4, value=actividad)
     a.font = BODY_FONT
     a.alignment = WRAP_TOP
-    t = ws3.cell(row=row, column=4, value="-> " + tip)
+    estado_cell = ws3.cell(row=row, column=5, value=estado)
+    estado_cell.font = Font(bold=True, size=9.5, color="375623" if estado == CONF else "7F6000")
+    estado_cell.fill = CONFIRMADO_FILL if estado == CONF else PENDIENTE_FILL
+    estado_cell.alignment = CENTER
+    t = ws3.cell(row=row, column=6, value="-> " + tip)
     t.font = BODY_FONT
     t.alignment = WRAP_TOP
-    for col in range(1, 5):
+    for col in range(1, 7):
         ws3.cell(row=row, column=col).border = BOX
-        if col in (1, 2):
-            ws3.cell(row=row, column=col).alignment = WRAP_TOP
-    if (row % 2) == 0:
-        for col in range(1, 5):
-            ws3.cell(row=row, column=col).fill = STRIPE_FILL
+        if col in (1, 2, 3):
+            ws3.cell(row=row, column=col).alignment = WRAP_TOP if col == 1 else CENTER
     ws3.row_dimensions[row].height = 34
     row += 1
 
+row += 1
+ws3.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
+leyenda3 = ws3.cell(row=row, column=1, value=(
+    "Confirmado = ya reservado/facturado (vuelos, Disney, Universal). Por organizar = todavia sin reserva "
+    "(Hollywood Beach, minivan, dias libres de Miami)."
+))
+leyenda3.font = Font(italic=True, size=9.5)
+ws3.row_dimensions[row].height = 18
+
 # ===========================================================================
-# PESTANA 4: LOGISTICA TERRESTRE Y VUELOS
+# PESTANA 5: LOGISTICA TERRESTRE Y VUELOS
 # ===========================================================================
 ws4 = wb.create_sheet("Logistica Terrestre y Vuelos")
 ws4.sheet_view.showGridLines = False
@@ -559,7 +755,7 @@ ws4.cell(row=row, column=1).alignment = WRAP_TOP
 ws4.row_dimensions[row].height = 30
 
 # ===========================================================================
-# PESTANA 5: GUIA OPERATIVA
+# PESTANA 6: GUIA OPERATIVA
 # ===========================================================================
 ws5 = wb.create_sheet("Guia Operativa")
 ws5.sheet_view.showGridLines = False
