@@ -5,12 +5,24 @@ Datos de vuelos y reservas extraidos de los PDF/documentos reales del viaje
 (Google Drive: carpeta VIAJES / Disney 2027 febrero). Todas las celdas
 financieras derivadas usan formulas nativas de Excel.
 """
+import json
+import os
+
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.comments import Comment
 from openpyxl.workbook.defined_name import DefinedName
 
 OUTPUT_PATH = "Presupuesto_Florida_2027_Nico.xlsx"
+GASTOS_PATH = "gastos_registrados.json"
+
+
+def cargar_gastos():
+    """Lee el registro de gastos reales (fuente de verdad, editada via chat con Nico)."""
+    if not os.path.exists(GASTOS_PATH):
+        return []
+    with open(GASTOS_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 # ---------------------------------------------------------------------------
 # Estilos
@@ -168,7 +180,7 @@ style_section_header(ws1, row, "COMO LEER ESTE LIBRO", 6)
 row += 1
 notas = [
     "Pestana 2 (Matriz Financiera): presupuesto PROYECTADO segun lo ya reservado/facturado. Todas las celdas de costo total y costo de Nicolas son FORMULAS activas de Excel. Las celdas resaltadas en amarillo son estimaciones editables.",
-    "Pestana 3 (Registro de Gastos): hoja de carga MANUAL para que Nico anote los gastos reales dia a dia (Uber, comidas, compras, etc.). Los totales por nucleo se calculan solos con formulas.",
+    "Pestana 3 (Registro de Gastos): Nico le cuenta los gastos reales a Claude por chat y esta hoja se mantiene actualizada sola. Los totales por nucleo se calculan solos con formulas.",
     "Pestana 4 (Itinerario Flash): calendario dia a dia con horarios reales de vuelo y estado Confirmado / Por organizar de cada actividad.",
     "Pestana 5 (Logistica): tabla de vuelos reales (PNR ETPWSR / booking B4ZHG8) y analisis de alquiler de minivan en Miami.",
     "Pestana 6 (Guia Operativa): tips practicos y la formula de control del presupuesto total del grupo.",
@@ -402,13 +414,14 @@ widths2b = {"A": 13, "B": 20, "C": 34, "D": 15, "E": 16, "F": 14, "G": 30}
 for col, w in widths2b.items():
     ws2b.column_dimensions[col].width = w
 
-style_title_row(ws2b, 1, "REGISTRO DE GASTOS - CARGA MANUAL (NICO)", 7, height=30)
+style_title_row(ws2b, 1, "REGISTRO DE GASTOS", 7, height=30)
 row = 2
 ws2b.merge_cells(f"A{row}:G{row}")
 c = ws2b.cell(row=row, column=1, value=(
-    "Esta hoja es de uso exclusivo de Nico: anotar aca cada gasto real a medida que ocurre en el viaje "
-    "(Uber, comidas, compras, propinas, etc.). Es independiente de la Matriz Financiera (que refleja lo ya "
-    "reservado/facturado). Los totales de abajo se recalculan solos con formulas."
+    "Registro de gastos reales del viaje (Uber, comidas, compras, propinas, etc.), independiente de la "
+    "Matriz Financiera (que refleja lo ya reservado/facturado). Nico le cuenta cada gasto a Claude por chat "
+    "y esta hoja se actualiza sola - no hace falta cargar nada a mano aca. Los totales de abajo se "
+    "recalculan solos con formulas."
 ))
 c.font = Font(italic=True, size=10)
 c.alignment = WRAP_TOP
@@ -429,29 +442,35 @@ ws2b.freeze_panes = f"A{row + 1}"
 row += 1
 gasto_first_row = row
 
-N_BLANK_ROWS = 60
-for i in range(N_BLANK_ROWS):
+gastos_reales = cargar_gastos()
+N_BLANK_ROWS = 40
+N_TOTAL_ROWS = max(len(gastos_reales), 1) + N_BLANK_ROWS
+
+for i in range(N_TOTAL_ROWS):
+    r = row + i
     for col in range(1, 8):
-        cell = ws2b.cell(row=row, column=col)
+        cell = ws2b.cell(row=r, column=col)
         cell.border = BOX
         cell.font = BODY_FONT
         if col == 6:
             cell.number_format = USD
         if (i % 2) == 0:
             cell.fill = STRIPE_FILL
-    ws2b.row_dimensions[row].height = 16
-    row += 1
+    ws2b.row_dimensions[r].height = 16
+    if i < len(gastos_reales):
+        g = gastos_reales[i]
+        ws2b.cell(row=r, column=1, value=g.get("fecha", ""))
+        ws2b.cell(row=r, column=2, value=g.get("categoria", ""))
+        ws2b.cell(row=r, column=3, value=g.get("descripcion", ""))
+        ws2b.cell(row=r, column=4, value=g.get("nucleo", ""))
+        ws2b.cell(row=r, column=5, value=g.get("pagado_por", ""))
+        if g.get("monto") is not None:
+            ws2b.cell(row=r, column=6, value=g["monto"])
+        ws2b.cell(row=r, column=7, value=g.get("notas", ""))
+        for col in (1, 3, 5, 7):
+            ws2b.cell(row=r, column=col).alignment = WRAP_TOP
+row += N_TOTAL_ROWS
 gasto_last_row = row - 1
-
-# Primer gasto real ya avisado por Nico: sena de $200 pagada con tarjeta Santander Rio.
-# Fecha/reserva exacta a confirmar (hay dos senas de $200: Universal 63W124U2 y Disney #43028783).
-ws2b.cell(row=gasto_first_row, column=1, value="A confirmar")
-ws2b.cell(row=gasto_first_row, column=3, value="Sena de reserva (confirmar si es Universal 63W124U2 o Disney #43028783 - ambas por $200)")
-ws2b.cell(row=gasto_first_row, column=5, value="Nicolas - Tarjeta credito Santander Rio")
-ws2b.cell(row=gasto_first_row, column=6, value=200)
-ws2b.cell(row=gasto_first_row, column=7, value="Cargado por Claude a pedido de Nico; confirmar fecha exacta y a que reserva corresponde.")
-for col in (1, 3, 5, 7):
-    ws2b.cell(row=gasto_first_row, column=col).alignment = WRAP_TOP
 
 # Data validation: Categoria y Nucleo como listas desplegables
 from openpyxl.worksheet.datavalidation import DataValidation
