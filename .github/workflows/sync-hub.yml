@@ -1,0 +1,35 @@
+name: Sync resultados · Hub (ligas self-service)
+
+# Sincroniza los resultados del Mundial 2026 en TODAS las ligas creadas por los
+# usuarios (Supabase compartido / hub). Una sola corrida cubre todas las ligas:
+# cuando alguien crea una liga nueva, queda incluida automáticamente.
+#
+# REQUISITOS (Settings → Secrets and variables → Actions):
+#   FOOTBALL_DATA_API_KEY    (compartido con las demás ligas)
+#   SUPABASE_URL_HUB         URL del Supabase compartido (hub)
+#   SUPABASE_ANON_KEY_HUB    anon key del hub
+on:
+  # Cron deshabilitado: el Mundial 2026 termino, no hay mas partidos que
+  # sincronizar. Los resultados finales ya estan cargados en el hub. Se
+  # deja solo workflow_dispatch por si alguna vez se necesita re-ejecutar
+  # una carga manualmente.
+  workflow_dispatch: {}      # botón manual
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repo
+        uses: actions/checkout@v4
+
+      - name: Usar Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sincronizar resultados a todas las ligas del hub
+        env:
+          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+          SUPABASE_URL_HUB: ${{ secrets.SUPABASE_URL_HUB }}
+          SUPABASE_ANON_KEY_HUB: ${{ secrets.SUPABASE_ANON_KEY_HUB }}
+        run: node scripts/sync-results-hub.mjs

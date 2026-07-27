@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mundial 2026 Prode · Vamos Argentina</title>
+  <meta name="description" content="Prode de la fase de grupos del Mundial FIFA 2026. ¡Vamos Argentina!" />
+
+  <!-- Vista previa al compartir el link (WhatsApp, Telegram, redes) -->
+  <meta property="og:title" content="Mundial 2026 Prode · Vamos Argentina" />
+  <meta property="og:description" content="Sumate al prode de la fase de grupos del Mundial FIFA 2026. Cargá tus pronósticos y competí en el ranking. ¡Vamos Argentina!" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_AR" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Mundial 2026 Prode · Vamos Argentina" />
+  <meta name="twitter:description" content="Sumate al prode de la fase de grupos del Mundial FIFA 2026. ¡Vamos Argentina!" />
+  <link rel="preconnect" href="https://flagcdn.com" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ===================== Barra superior ===================== -->
+  <header class="topbar" id="topbar">
+    <div class="brand">
+      <span class="brand-mark">
+        <img class="brand-logo" src="assets/logo26.png" alt="Mundial 2026"
+             onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';" />
+        <span class="logo-ph" style="display:none">26</span>
+      </span>
+      <div class="brand-text">
+        <strong id="appTitle">PRODE Mundial 2026</strong>
+        <span id="appSubtitle">Fase de grupos</span>
+      </div>
+    </div>
+    <nav class="nav" id="nav" hidden>
+      <button class="nav-btn" data-view="fixture" id="navFixture">Mi prode</button>
+      <button class="nav-btn" data-view="ranking" id="navRanking">Ranking</button>
+      <button class="nav-btn" data-view="admin" id="navAdmin">Admin</button>
+      <span class="user-chip" id="userChip" hidden></span>
+      <button class="nav-btn ghost" id="logoutBtn" hidden>Salir</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- ===================== Bienvenida / Login ===================== -->
+    <section id="view-welcome" class="view">
+      <div class="hero">
+        <div class="hero-logos">
+          <img class="hero-logo" src="assets/logo26.png" alt="FIFA World Cup 26" onerror="this.style.display='none'" />
+          <img class="hero-league-logo" src="assets/logo26.png" alt="" hidden />
+        </div>
+        <h1 class="hero-title">Sumate al <span>PRODE 2026</span></h1>
+        <div class="hero-badge"><img class="badge-ball" src="assets/pelota.png" alt="" onerror="this.remove()" />MUNDIAL 2026 · CANADÁ · MÉXICO · EE.UU.</div>
+        <p class="hero-sub">Pronosticá los 72 partidos de la fase de grupos y competí por el primer puesto.</p>
+
+        <figure class="champ">
+          <img class="champ-img" src="assets/messi.jpg" alt="Argentina campeón del mundo 2022"
+               onerror="this.closest('.champ').classList.add('no-img')" />
+          <figcaption class="champ-cap">Campeones del mundo 2022 · ¡Vamos por la próxima! 🏆</figcaption>
+        </figure>
+      </div>
+
+      <!-- Flyer de premios de la liga (solo si la liga define uno en leagues.js) -->
+      <figure class="prizes-flyer" id="prizesFlyer" hidden>
+        <img id="prizesFlyerImg" src="" alt="Premios de la liga"
+             onerror="this.closest('.prizes-flyer').hidden = true" />
+      </figure>
+
+      <div class="card login-card">
+        <h2>Ingresá para jugar</h2>
+        <p class="muted">Identificate con tu nombre, apellido y DNI. El DNI es tu clave para recuperar tus jugadas; en el ranking solo se ve tu nombre y apellido.</p>
+        <form id="loginForm" class="form">
+          <div class="row">
+            <label>Nombre
+              <input type="text" id="firstName" autocomplete="given-name" required placeholder="Lionel" />
+            </label>
+            <label>Apellido
+              <input type="text" id="lastName" autocomplete="family-name" required placeholder="Messi" />
+            </label>
+          </div>
+
+          <label>DNI <span class="muted">(tu clave para volver a entrar)</span>
+            <input type="text" id="dni" inputmode="numeric" autocomplete="off" required placeholder="Solo números, sin puntos" />
+          </label>
+
+          <div id="entryBox" class="entry-box" hidden>
+            <h3>Inscripción</h3>
+            <p class="entry-cost">Costo: <strong id="entryCost"></strong></p>
+            <p class="muted" id="entryNote"></p>
+            <p class="alias">Alias / CBU: <strong id="entryAlias"></strong></p>
+            <label>Nº de comprobante / Alias de transferencia
+              <input type="text" id="paymentReference" placeholder="Ej: 0001234567 o tu.alias" />
+            </label>
+          </div>
+
+          <button type="submit" class="btn primary" id="loginBtn">Ingresar</button>
+          <p class="error" id="loginError" hidden></p>
+        </form>
+      </div>
+      <!-- Ganadores del Mundial (visible al terminar el torneo) -->
+      <div class="card winners-card" id="winnersCard" hidden>
+        <h2>🏆 Ganadores del Mundial</h2>
+        <p class="muted">Tocá un ganador para ver todas sus jugadas y los puntos que sumó.</p>
+        <div class="winners-list" id="winnersList"></div>
+      </div>
+
+      <div class="card rules-card">
+        <h2>📋 Cómo se juega</h2>
+        <ol class="rules-list">
+          <li><strong>Ingresá</strong> con tu nombre y apellido. Si volvés más tarde, recuperás tus jugadas.</li>
+          <li><strong>Pronosticá el marcador</strong> de los partidos de la fase de grupos (72 en total).</li>
+          <li><strong>Puntos:</strong> +1 si acertás el resultado (quién gana o si es empate) y +1 extra si acertás el marcador exacto → hasta <strong>2 puntos por partido</strong>.</li>
+          <li><strong>Cierre:</strong> cada partido se cierra <strong id="ruleLock">60</strong> min antes de empezar. Lo que guardás queda <strong>bloqueado</strong>; los que falten los podés completar hasta el horario de cada uno.</li>
+          <li><strong>Ranking:</strong> los puntos se suman <strong>automáticamente</strong> a medida que se cargan los resultados oficiales. En caso de empate, desempata quien tenga más marcadores exactos.</li>
+        </ol>
+      </div>
+      <!-- Compartir esta liga: visible bajo "cómo se juega" (solo ligas creadas) -->
+      <div class="card share-card" id="shareCard" hidden>
+        <span class="share-card-eyebrow">📣 Invitá a tu liga</span>
+        <h2 class="share-card-name" id="shareCardName"></h2>
+        <p class="muted">Mandales este link y se suman a esta misma liga.</p>
+        <div class="share-link">
+          <input type="text" id="shareCardLink" readonly />
+          <button class="btn small" id="shareCardCopy">Copiar</button>
+        </div>
+        <a class="btn primary" id="shareCardWhatsapp" target="_blank" rel="noopener">📲 Compartir por WhatsApp</a>
+      </div>
+
+      <!-- Separador claro entre "jugar acá" y "armar otro prode distinto" -->
+      <div class="create-divider" id="createDivider" hidden><span>o</span></div>
+      <div class="card create-cta" id="createCta" hidden>
+        <h2>🏆 Armá tu propio prode</h2>
+        <p class="muted">¿Querés un prode aparte para tu grupo de amigos, tu trabajo o tu familia? Creá una liga nueva en segundos: vos sos el administrador y compartís tu propio link.</p>
+        <button class="btn primary" id="goCreateBtn">Crear una liga nueva</button>
+      </div>
+      <p class="backend-note" id="backendNote"></p>
+    </section>
+
+    <!-- ===================== Crear liga ===================== -->
+    <section id="view-create" class="view" hidden>
+      <div class="card login-card">
+        <h2>Crear mi liga</h2>
+        <p class="muted" id="createIntro">Completá los datos. Al crearla obtenés un <strong>link único</strong> para compartir: cualquiera que entre con ese link juega en tu liga.</p>
+        <form id="createForm" class="form">
+          <label>Nombre de la liga *
+            <input type="text" id="clName" maxlength="60" required placeholder="Ej: Prode del Trabajo" />
+          </label>
+          <label>Subtítulo <span class="muted">(opcional)</span>
+            <input type="text" id="clSubtitle" maxlength="80" placeholder="Ej: Fase de grupos · Oficina 2026" />
+          </label>
+          <label>Subí tu logo <span class="muted">(opcional · jpg, png o webp · ideal cuadrado)</span>
+            <input type="file" id="clLogoFile" accept="image/png,image/jpeg,image/webp,image/gif" />
+          </label>
+          <label>…o pegá el logo por URL <span class="muted">(opcional)</span>
+            <input type="url" id="clLogo" placeholder="https://.../mi-logo.png" />
+          </label>
+          <label>Color principal <span class="muted">(opcional)</span>
+            <input type="color" id="clColor" value="#3f86c9" />
+          </label>
+          <hr class="soft" />
+          <label>Clave de administrador de tu liga *
+            <input type="text" id="clAdminPass" required placeholder="La usarás para cargar resultados" />
+          </label>
+          <label>Clave de creación *
+            <input type="text" id="clCreationKey" required placeholder="La clave que te pasaron para poder crear ligas" />
+          </label>
+          <button type="submit" class="btn primary" id="clSubmitBtn">Crear liga</button>
+          <button type="button" class="btn ghost" id="clCancelBtn">Volver</button>
+          <p class="error" id="createError" hidden></p>
+        </form>
+      </div>
+
+      <div class="card created-card" id="createdCard" hidden>
+        <h2>✅ ¡Tu liga está lista!</h2>
+        <p class="created-name" id="createdName"></p>
+        <p class="muted">Compartí este link con quienes quieras invitar. Entran, cargan su nombre y juegan.</p>
+        <div class="share-link">
+          <input type="text" id="createdLink" readonly />
+          <button class="btn small" id="copyLinkBtn">Copiar</button>
+        </div>
+        <p class="muted">Código de tu liga: <strong id="createdCode"></strong></p>
+        <div class="created-actions">
+          <a class="btn primary" id="whatsappShare" target="_blank" rel="noopener">Compartir por WhatsApp</a>
+          <button class="btn ghost" id="enterLeagueBtn">Entrar a mi liga</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== Editor de fixture ===================== -->
+    <section id="view-fixture" class="view" hidden>
+      <div class="view-head">
+        <h2><img class="head-mascot" src="assets/pelota.png" alt="" onerror="this.replaceWith(document.createTextNode('⚽'))" />Cargá tus pronósticos</h2>
+        <p class="muted">Las predicciones de cada partido se cierran <strong id="lockMins">60</strong> min antes del inicio (hora de Argentina).</p>
+        <div class="prono-status" id="pronoStatus">
+          <p class="muted prono-help">Tocá un chip para filtrar los partidos:</p>
+          <button type="button" class="chip chip-ok" data-filter="saved" title="Ver solo los partidos que ya cargaste">✓ Cargados <strong id="cntLoaded">0</strong></button>
+          <button type="button" class="chip chip-pending" data-filter="pending" title="Ver solo los partidos que te faltan completar">⏳ Pendientes <strong id="cntPending">0</strong></button>
+          <button type="button" class="chip chip-closed" id="cntClosedChip" data-filter="closed" title="Ver los partidos que se cerraron sin que cargaras pronóstico" hidden>🔒 Cerrados sin cargar <strong id="cntClosed">0</strong></button>
+          <button type="button" class="chip chip-clear" id="clearFilter" hidden>✕ Quitar filtro</button>
+        </div>
+      </div>
+      <div id="groupsContainer"></div>
+      <p class="muted empty-pending" id="emptyPending" hidden></p>
+
+      <div class="action-bar" id="actionBar">
+        <button class="btn primary" id="saveDraftBtn">Guardar pronósticos</button>
+        <button class="btn ghost" id="ticketBtn">Ver mi ticket</button>
+        <button class="btn ghost" id="myBreakdownBtn">Ver mis puntos</button>
+        <span class="save-status" id="saveStatus"></span>
+      </div>
+    </section>
+
+    <!-- ===================== Ticket ===================== -->
+    <section id="view-ticket" class="view" hidden>
+      <div class="ticket-actions no-print">
+        <button class="btn primary" id="printBtn">🖨️ Imprimir ticket</button>
+        <button class="btn ghost" id="backFromTicket">Volver</button>
+      </div>
+      <div id="ticket" class="ticket"></div>
+    </section>
+
+    <!-- ===================== Detalle de jugadas con puntos (propio o de un ganador) ===================== -->
+    <section id="view-breakdown" class="view" hidden>
+      <div class="view-head">
+        <button class="btn ghost" id="backFromBreakdown">← Volver</button>
+      </div>
+      <!-- Cabecera: puntos sumados (gigante), nombre del jugador, y mini-podio -->
+      <div class="bd-header" id="breakdownHeader"></div>
+      <div id="breakdownContainer"></div>
+    </section>
+
+    <!-- ===================== Ranking ===================== -->
+    <section id="view-ranking" class="view" hidden>
+      <div class="view-head">
+        <h2><img class="head-mascot" src="assets/pelota.png" alt="" onerror="this.replaceWith(document.createTextNode('⚽'))" />Tabla de posiciones</h2>
+        <p class="muted">+1 punto por acertar el resultado · +1 punto extra si coincide el marcador exacto.</p>
+      </div>
+      <div id="rankingContainer"></div>
+    </section>
+
+    <!-- ===================== Admin ===================== -->
+    <section id="view-admin" class="view" hidden>
+      <div id="adminLogin" class="card login-card">
+        <h2>Panel de administrador</h2>
+        <p class="muted">Ingresá la contraseña para cargar resultados y validar pagos.</p>
+        <form id="adminForm" class="form">
+          <label>Contraseña
+            <input type="password" id="adminPass" />
+          </label>
+          <button class="btn primary" type="submit">Entrar</button>
+          <p class="error" id="adminError" hidden></p>
+        </form>
+      </div>
+
+      <div id="adminPanel" hidden>
+        <div class="tabs">
+          <button class="tab active" data-tab="results">Cargar resultados</button>
+          <button class="tab" data-tab="players">Jugadores y pagos</button>
+        </div>
+        <div id="adminResults" class="tab-panel"></div>
+        <div id="adminPlayers" class="tab-panel" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Banner de liga cruzada (se muestra solo si la liga lo configura) -->
+  <footer class="cross-promo" id="crossPromo" hidden>
+    <div class="cross-promo-inner">
+      <span class="cross-promo-icon">📖</span>
+      <div class="cross-promo-text">
+        <strong id="crossPromoTitle"></strong>
+        <span id="crossPromoDesc"></span>
+      </div>
+      <span class="cross-promo-free" id="crossPromoFree" hidden>GRATIS</span>
+      <a class="btn primary cross-promo-btn" id="crossPromoLink" target="_blank" rel="noopener">Sumarme</a>
+    </div>
+  </footer>
+
+  <!-- ===================== Scripts ===================== -->
+  <!-- Cliente Supabase (CDN UMD). Si no configurás Supabase, la app usa localStorage. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/leagues.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/fixture.js"></script>
+  <script src="js/scoring.js"></script>
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

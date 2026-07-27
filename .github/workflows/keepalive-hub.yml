@@ -1,0 +1,32 @@
+name: Keepalive · Hub Supabase
+
+# Garantiza que el proyecto Supabase del hub no se auto-pause por 7 dias de
+# inactividad: cada 2 dias hace una lectura trivial contra el REST API.
+# Independiente de cualquier API externa (football-data, etc.) — solo toca
+# Supabase, asi no se ve afectado por fallas de terceros.
+
+on:
+  schedule:
+    - cron: '0 6 */2 * *'   # cada 2 dias a las 06:00 UTC (~03:00 AR)
+  workflow_dispatch: {}      # boton manual
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping al hub Supabase
+        env:
+          SUPABASE_URL_HUB: ${{ secrets.SUPABASE_URL_HUB }}
+          SUPABASE_ANON_KEY_HUB: ${{ secrets.SUPABASE_ANON_KEY_HUB }}
+        run: |
+          if [ -z "$SUPABASE_URL_HUB" ] || [ -z "$SUPABASE_ANON_KEY_HUB" ]; then
+            echo "Faltan SUPABASE_URL_HUB / SUPABASE_ANON_KEY_HUB"
+            exit 1
+          fi
+          # Solo lectura: trae a lo sumo 1 fila de leagues (no escribe nada).
+          curl -fsSL \
+            -H "apikey: $SUPABASE_ANON_KEY_HUB" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY_HUB" \
+            "$SUPABASE_URL_HUB/rest/v1/leagues?select=id&limit=1" \
+            -o /tmp/keepalive.json
+          echo "Hub respondio OK: $(wc -c < /tmp/keepalive.json) bytes"
