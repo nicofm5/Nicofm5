@@ -11,10 +11,10 @@
   {
     "fecha": "27-jul-2026",
     "categoria": "Hospedaje Miami",
-    "descripcion": "Pago a Rodolfo por el alquiler del departamento en Miami (Hollywood Beach) - Rodolfo pago el total del alquiler",
+    "descripcion": "Pago a Rodolfo por el alquiler del departamento en Miami (Hyde Beach House Apt 3708, factura #648: $3,520.00 - comprobante en Drive). Cubre aproximadamente la parte de Nucleo 3 (Natalia y Nicolas).",
     "nucleo": "Nucleo 3",
     "pagado_por": "Nicolas",
     "monto": 1000,
-    "notas": "Falta el costo TOTAL del alquiler (avisado por Nico) para calcular la parte proporcional exacta de cada nucleo en la Matriz Financiera."
+    "notas": "Parte de Nucleo 3 es $1,005.71 exacto ($3,520/7 x 2); Nicolas pago $1,000, puede quedar un saldo menor de $5.71 con Rodolfo. La parte de Delfina la cubren Rodolfo y Claudia directo. Falta que Florencia y German le paguen a Rodolfo su parte (~$1,005.71)."
   }
 ]

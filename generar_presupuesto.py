@@ -350,9 +350,15 @@ add_prop_row(
 )
 add_prop_row(
     "Hospedaje Miami (Hollywood Beach)",
-    "Departamento 3/4 habitaciones, 17 al 22-feb-2027 (5 noches). Rodolfo pago el alquiler completo por adelantado.",
-    0.00, weight="PAX",
-    note="A COMPLETAR: Rodolfo ya pago el total del alquiler. Cargar aca ese monto total cuando se confirme, para que se calcule la parte de cada nucleo (ver fila Rodolfo en Deudas Entre Personas, hoja Registro de Gastos).",
+    "Hyde Beach House Apt 3708 (3 dormitorios), 4010 South Ocean Drive, Hollywood Beach FL 33019. "
+    "Confirmacion #593958171. Check-in 17-feb-2027 16:00, check-out 22-feb-2027 11:00. Incluye parking y "
+    "servicio de playa para 2 personas ($300 de garantia con tarjeta al check-in). Factura #648: estadia "
+    "$3,250.00 + limpieza final $270.00. Rodolfo pago el total por adelantado; la parte de Delfina la "
+    "cubren Rodolfo y Claudia directamente dentro del Nucleo 1.",
+    3520.00, weight="PAX", input_cell=False,
+    note="Monto real segun factura #648 (comprobante en Drive, carpeta Reservas hospedajes). Reparto "
+    "proporcional por PAX: N1 incluye a Delfina. Nicolas ya le pago a Rodolfo $1,000 a cuenta de la parte "
+    "de Nucleo 3 (ver Registro de Gastos); puede quedar un saldo menor si no coincide exacto con F10/2 de esta fila.",
 )
 add_prop_row(
     "Alquiler Auto Miami",
@@ -543,11 +549,11 @@ row += 1
 
 deudas = [
     (
-        "Hospedaje Miami (departamento Hollywood Beach, 17 al 22-feb)",
+        "Hyde Beach House Apt 3708 - Hospedaje Miami (factura #648: $3,520) - SALDO PENDIENTE",
         "Rodolfo Agullo (pago el total del alquiler por adelantado)",
-        "Florencia y German (Nucleo 2) + Natalia y Nicolas (Nucleo 3), cada uno su parte proporcional",
-        "='Matriz Financiera'!E10+'Matriz Financiera'!F10",
-        "Pendiente: falta cargar el costo TOTAL del alquiler en la Matriz Financiera (fila Hospedaje Miami) para que este monto se calcule solo. Nico ya le adelanto $1000 a Rodolfo a cuenta de esto (ver arriba).",
+        "Florencia y German (Nucleo 2)",
+        "='Matriz Financiera'!E10",
+        "Pendiente de liquidar con Rodolfo. Nucleo 3 (Natalia y Nicolas) YA PAGO $1,000 a cuenta (ver Registro de Gastos arriba; su parte exacta figura en la fila Hospedaje Miami de la Matriz Financiera, puede quedar un saldo chico). Nucleo 1 no debe nada porque cubre su propia parte, incluida la de Delfina.",
     ),
     (
         "Universal Dockside (reserva conjunta 63W124U2: Florencia, German, Natalia, Nicolas)",
