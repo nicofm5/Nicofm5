@@ -9,8 +9,10 @@ name: Sync resultados · Hub (ligas self-service)
 #   SUPABASE_URL_HUB         URL del Supabase compartido (hub)
 #   SUPABASE_ANON_KEY_HUB    anon key del hub
 on:
-  schedule:
-    - cron: '10 * * * *'    # cada hora (10 min después de la liga general)
+  # Cron deshabilitado: el Mundial 2026 termino, no hay mas partidos que
+  # sincronizar. Los resultados finales ya estan cargados en el hub. Se
+  # deja solo workflow_dispatch por si alguna vez se necesita re-ejecutar
+  # una carga manualmente.
   workflow_dispatch: {}      # botón manual
 
 jobs:
