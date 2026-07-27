@@ -350,9 +350,9 @@ add_prop_row(
 )
 add_prop_row(
     "Hospedaje Miami (Hollywood Beach)",
-    "Departamento 3/4 habitaciones, 17 al 22-feb-2027 (5 noches). Aun sin reservar.",
+    "Departamento 3/4 habitaciones, 17 al 22-feb-2027 (5 noches). Rodolfo pago el alquiler completo por adelantado.",
     0.00, weight="PAX",
-    note="A COMPLETAR: no se encontro reserva en Drive. Cargar el costo total cuando se confirme el alojamiento.",
+    note="A COMPLETAR: Rodolfo ya pago el total del alquiler. Cargar aca ese monto total cuando se confirme, para que se calcule la parte de cada nucleo (ver fila Rodolfo en Deudas Entre Personas, hoja Registro de Gastos).",
 )
 add_prop_row(
     "Alquiler Auto Miami",
@@ -542,6 +542,13 @@ ws2b.row_dimensions[row].height = 18
 row += 1
 
 deudas = [
+    (
+        "Hospedaje Miami (departamento Hollywood Beach, 17 al 22-feb)",
+        "Rodolfo Agullo (pago el total del alquiler por adelantado)",
+        "Florencia y German (Nucleo 2) + Natalia y Nicolas (Nucleo 3), cada uno su parte proporcional",
+        "='Matriz Financiera'!E10+'Matriz Financiera'!F10",
+        "Pendiente: falta cargar el costo TOTAL del alquiler en la Matriz Financiera (fila Hospedaje Miami) para que este monto se calcule solo. Nico ya le adelanto $1000 a Rodolfo a cuenta de esto (ver arriba).",
+    ),
     (
         "Universal Dockside (reserva conjunta 63W124U2: Florencia, German, Natalia, Nicolas)",
         "German Agullo (pago la reserva completa)",

@@ -7,5 +7,14 @@
     "pagado_por": "Nicolas - Tarjeta credito Santander Rio",
     "monto": 200,
     "notas": "Avisado por Nico por chat; falta confirmar fecha exacta y a que reserva corresponde."
+  },
+  {
+    "fecha": "27-jul-2026",
+    "categoria": "Hospedaje Miami",
+    "descripcion": "Pago a Rodolfo por el alquiler del departamento en Miami (Hollywood Beach) - Rodolfo pago el total del alquiler",
+    "nucleo": "Nucleo 3",
+    "pagado_por": "Nicolas",
+    "monto": 1000,
+    "notas": "Falta el costo TOTAL del alquiler (avisado por Nico) para calcular la parte proporcional exacta de cada nucleo en la Matriz Financiera."
   }
 ]
