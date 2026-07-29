@@ -1,0 +1,16 @@
+[
+  {
+    "fecha": "09-jul-2026",
+    "rubro": "Disney",
+    "detalle": "Sena de la reserva Disney Art of Animation #43028783 (Natalia y Nicolas, Nucleo 3) - Tarjeta credito Santander Rio",
+    "monto": 200,
+    "notas": "Confirmado: la sena de $200 fue para Disney, no para Universal."
+  },
+  {
+    "fecha": "27-jul-2026",
+    "rubro": "Hospedaje Miami",
+    "detalle": "Pago a Rodolfo por el alquiler del departamento en Miami (Hyde Beach House Apt 3708, factura #648: $3,520.00)",
+    "monto": 1000,
+    "notas": "Parte exacta de Nucleo 3 es $1,005.71 ($3,520/7 x 2). Puede quedar un saldo chico de ~$5.71 pendiente con Rodolfo."
+  }
+]

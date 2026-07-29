@@ -1,0 +1,20 @@
+[
+  {
+    "fecha": "09-jul-2026",
+    "categoria": "Disney",
+    "descripcion": "Sena de la reserva Disney Art of Animation #43028783 (Natalia y Nicolas, Nucleo 3)",
+    "nucleo": "Nucleo 3",
+    "pagado_por": "Nicolas - Tarjeta credito Santander Rio",
+    "monto": 200,
+    "notas": "Confirmado por Nico: la sena de $200 fue para Disney, no para Universal. Todavia no pago nada de la reserva Universal (la esta pagando German)."
+  },
+  {
+    "fecha": "27-jul-2026",
+    "categoria": "Hospedaje Miami",
+    "descripcion": "Pago a Rodolfo por el alquiler del departamento en Miami (Hyde Beach House Apt 3708, factura #648: $3,520.00 - comprobante en Drive). Cubre aproximadamente la parte de Nucleo 3 (Natalia y Nicolas).",
+    "nucleo": "Nucleo 3",
+    "pagado_por": "Nicolas",
+    "monto": 1000,
+    "notas": "Parte de Nucleo 3 es $1,005.71 exacto ($3,520/7 x 2); Nicolas pago $1,000, puede quedar un saldo menor de $5.71 con Rodolfo. La parte de Delfina la cubren Rodolfo y Claudia directo. Falta que Florencia y German le paguen a Rodolfo su parte (~$1,005.71)."
+  }
+]
