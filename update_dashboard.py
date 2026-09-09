@@ -211,7 +211,7 @@ def build_all_formulas(mes):
 
     def date_match(sheet_col):
         """Extrae AAAA-MM de una celda que puede tener fecha+hora o fecha sola."""
-        return f'TEXT(DATEVALUE(TEXT({sheet_col};"DD/MM/YYYY"));"AAAA-MM")'
+        return f'TEXT(DATEVALUE(TEXT({sheet_col};"DD/MM/AAAA"));"AAAA-MM")'
 
     def safe_amount(col):
         """Convierte texto con punto decimal a número (maneja 150.000 → 150000)."""
